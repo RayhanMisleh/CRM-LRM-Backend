@@ -11,7 +11,10 @@
     "resolveJsonModule": true,
     "moduleResolution": "node",
     "types": [
-      "node"
+      "node",
+      "express",
+      "cors",
+      "cookie-parser"
     ]
   },
   "include": [

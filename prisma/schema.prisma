@@ -19,7 +19,7 @@ model User {
   empresaId String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   // Relations
   empresa   Empresa?  @relation(fields: [empresaId], references: [id])
 
@@ -29,8 +29,11 @@ model User {
   servicos  Servico[]
   reunioes  Reuniao[]
   mensagens Mensagem[]
+  demandas   Demanda[]
   despesas  Despesa[]
   despesasRecorrentes DespesaRecorrente[]
+  contatos  Contato[]
+  assinaturas Assinatura[]
   
   @@map("users")
 }
@@ -44,10 +47,11 @@ model Empresa {
   cnpj             String?  @unique
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
-  
+
   // Relations
   usuarios         User[]
   clientes         Cliente[]
+  contatos         Contato[]
   
   @@map("empresas")
 }
@@ -63,7 +67,7 @@ model Cliente {
   userId      String   // Quem cadastrou
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   // Relations
   empresa     Empresa? @relation(fields: [empresaId], references: [id])
   usuario     User     @relation(fields: [userId], references: [id])
@@ -72,6 +76,9 @@ model Cliente {
   produtos    Produto[]
   reunioes    Reuniao[]
   dominios    Dominio[]
+  contatos    Contato[]
+  assinaturas Assinatura[]
+  demandas    Demanda[]
   
   @@map("clientes")
 }
@@ -89,10 +96,11 @@ model Contrato {
   userId      String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   // Relations
   cliente     Cliente @relation(fields: [clienteId], references: [id])
   usuario     User    @relation(fields: [userId], references: [id])
+  assinaturas Assinatura[]
   
   @@map("contratos")
 }
@@ -125,11 +133,31 @@ model Servico {
   userId      String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   // Relations
   cliente     Cliente? @relation(fields: [clienteId], references: [id])
-  usuario     User     @relation(fields: [userId], references: [id])  
+  usuario     User     @relation(fields: [userId], references: [id])
+  demandas    Demanda[]
   @@map("servicos")
+}
+
+model Demanda {
+  id          String        @id @default(cuid())
+  titulo      String
+  descricao   String?
+  prioridade  Prioridade    @default(MEDIA)
+  status      StatusDemanda @default(ABERTA)
+  servicoId   String
+  clienteId   String?
+  userId      String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  servico     Servico       @relation(fields: [servicoId], references: [id])
+  cliente     Cliente?      @relation(fields: [clienteId], references: [id])
+  usuario     User          @relation(fields: [userId], references: [id])
+
+  @@map("demandas")
 }
 
 model Reuniao {
@@ -148,6 +176,18 @@ model Reuniao {
   usuario     User     @relation(fields: [userId], references: [id])
   
   @@map("reunioes")
+}
+
+model Mensagem {
+  id        String        @id @default(cuid())
+  conteudo  String
+  tipo      TipoMensagem  @default(TEXTO)
+  userId    String
+  createdAt DateTime      @default(now())
+
+  usuario   User          @relation(fields: [userId], references: [id])
+
+  @@map("mensagens")
 }
 
 model Despesa {
@@ -197,6 +237,79 @@ model Dominio {
   @@map("dominios")
 }
 
+model Contato {
+  id        String   @id @default(cuid())
+  nome      String
+  email     String?
+  telefone  String?
+  cargo     String?
+  clienteId String?
+  empresaId String?
+  userId    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cliente   Cliente? @relation(fields: [clienteId], references: [id])
+  empresa   Empresa? @relation(fields: [empresaId], references: [id])
+  usuario   User?    @relation(fields: [userId], references: [id])
+
+  @@map("contatos")
+}
+
+model Plano {
+  id        String      @id @default(cuid())
+  nome      String
+  descricao String?
+  preco     Float
+  ciclo     PlanoCiclo  @default(MENSAL)
+  status    StatusPlano @default(ATIVO)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  assinaturas Assinatura[]
+
+  @@map("planos")
+}
+
+model Assinatura {
+  id          String            @id @default(cuid())
+  clienteId   String
+  planoId     String
+  contratoId  String?
+  userId      String?
+  valor       Float?
+  dataInicio  DateTime          @default(now())
+  dataFim     DateTime?
+  status      StatusAssinatura  @default(ATIVA)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  cliente     Cliente           @relation(fields: [clienteId], references: [id])
+  plano       Plano             @relation(fields: [planoId], references: [id])
+  contrato    Contrato?         @relation(fields: [contratoId], references: [id])
+  usuario     User?             @relation(fields: [userId], references: [id])
+  faturas     Fatura[]
+
+  @@map("assinaturas")
+}
+
+model Fatura {
+  id              String        @id @default(cuid())
+  assinaturaId    String
+  numero          String?
+  valor           Float
+  dataEmissao     DateTime      @default(now())
+  dataVencimento  DateTime?
+  dataPagamento   DateTime?
+  status          StatusFatura  @default(PENDENTE)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  assinatura      Assinatura    @relation(fields: [assinaturaId], references: [id])
+
+  @@map("faturas")
+}
+
 enum UserRole {
   SUPER_ADMIN  // Admin do sistema
   ADMIN        // Admin da empresa
@@ -214,4 +327,51 @@ enum StatusContrato {
 enum StatusRecorrencia {
   ATIVA
   INATIVA
+}
+
+enum Prioridade {
+  BAIXA
+  MEDIA
+  ALTA
+  URGENTE
+}
+
+enum StatusDemanda {
+  ABERTA
+  EM_ANDAMENTO
+  PAUSADA
+  CONCLUIDA
+  CANCELADA
+}
+
+enum TipoMensagem {
+  TEXTO
+  ARQUIVO
+  IMAGEM
+}
+
+enum PlanoCiclo {
+  MENSAL
+  TRIMESTRAL
+  SEMESTRAL
+  ANUAL
+}
+
+enum StatusPlano {
+  ATIVO
+  INATIVO
+}
+
+enum StatusAssinatura {
+  ATIVA
+  PENDENTE
+  ATRASADA
+  CANCELADA
+}
+
+enum StatusFatura {
+  PENDENTE
+  PAGA
+  ATRASADA
+  CANCELADA
 }
