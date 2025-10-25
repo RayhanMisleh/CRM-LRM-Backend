@@ -11,8 +11,11 @@ class SessionController {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({
-          success: false,
-          errors: errors.array(),
+          data: null,
+          error: {
+            message: "Dados inválidos",
+            details: errors.array(),
+          },
         });
       }
 
@@ -36,8 +39,6 @@ class SessionController {
       });
 
       return res.status(201).json({
-        success: true,
-        message: "Usuário criado com sucesso",
         data: {
           user: result.user,
           token: result.token,
@@ -58,8 +59,11 @@ class SessionController {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({
-          success: false,
-          errors: errors.array(),
+          data: null,
+          error: {
+            message: "Dados inválidos",
+            details: errors.array(),
+          },
         });
       }
 
@@ -77,8 +81,6 @@ class SessionController {
       });
 
       return res.status(200).json({
-        success: true,
-        message: "Login realizado com sucesso",
         data: {
           user: result.user,
           token: result.token,
@@ -100,8 +102,10 @@ class SessionController {
 
       if (!token) {
         return res.status(400).json({
-          success: false,
-          message: "Token não fornecido",
+          data: null,
+          error: {
+            message: "Token não fornecido",
+          },
         });
       }
 
@@ -112,8 +116,9 @@ class SessionController {
       res.clearCookie("token");
 
       return res.status(200).json({
-        success: true,
-        message: "Logout realizado com sucesso",
+        data: {
+          message: "Logout realizado com sucesso",
+        },
       });
     } catch (error) {
       next(error);

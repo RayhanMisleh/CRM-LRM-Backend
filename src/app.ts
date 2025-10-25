@@ -1,10 +1,11 @@
-import express, { Application } from 'express';
+import express, { Application, Request, Response } from 'express';
 import cors, { CorsOptions } from 'cors';
 import helmet, { HelmetOptions } from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 
 import routes from './routes';
+import errorHandler from './middlewares/errorHandler';
 
 const app: Application = express();
 
@@ -40,7 +41,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
-app.get('/health', (req, res) => {
+app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({
     status: 'OK',
     timestamp: new Date().toISOString(),
@@ -51,11 +52,16 @@ app.get('/health', (req, res) => {
 
 app.use('/api', routes);
 
-app.use('*', (req, res) => {
+app.use('*', (req: Request, res: Response) => {
   res.status(404).json({
-    error: 'Route not found',
-    message: `Cannot ${req.method} ${req.originalUrl}`,
+    data: null,
+    error: {
+      message: 'Route not found',
+      details: `Cannot ${req.method} ${req.originalUrl}`,
+    },
   });
 });
+
+app.use(errorHandler);
 
 export default app;
