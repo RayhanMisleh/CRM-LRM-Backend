@@ -1,0 +1,217 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  role      UserRole @default(USER)
+  empresaId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  empresa   Empresa?  @relation(fields: [empresaId], references: [id])
+
+  clientes  Cliente[]
+  contratos Contrato[]
+  produtos  Produto[]
+  servicos  Servico[]
+  reunioes  Reuniao[]
+  mensagens Mensagem[]
+  despesas  Despesa[]
+  despesasRecorrentes DespesaRecorrente[]
+  
+  @@map("users")
+}
+
+model Empresa {
+  id               String   @id @default(cuid())
+  nome             String
+  email            String   @unique
+  telefone         String?
+  endereco         String?
+  cnpj             String?  @unique
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  // Relations
+  usuarios         User[]
+  clientes         Cliente[]
+  
+  @@map("empresas")
+}
+
+model Cliente {
+  id          String   @id @default(cuid())
+  nome        String
+  email       String   @unique
+  telefone    String?
+  endereco    String?
+  cpfCnpj     String?
+  empresaId   String?
+  userId      String   // Quem cadastrou
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  empresa     Empresa? @relation(fields: [empresaId], references: [id])
+  usuario     User     @relation(fields: [userId], references: [id])
+  contratos   Contrato[]
+  servicos    Servico[]
+  produtos    Produto[]
+  reunioes    Reuniao[]
+  dominios    Dominio[]
+  
+  @@map("clientes")
+}
+
+model Contrato {
+  id          String   @id @default(cuid())
+  numero      String?
+  titulo      String
+  descricao   String?
+  valor       Float?
+  dataInicio  DateTime?
+  dataFim     DateTime?
+  status      StatusContrato @default(ATIVO)
+  clienteId   String
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  cliente     Cliente @relation(fields: [clienteId], references: [id])
+  usuario     User    @relation(fields: [userId], references: [id])
+  
+  @@map("contratos")
+}
+
+model Produto {
+  id          String   @id @default(cuid())
+  nome        String
+  descricao   String?
+  preco       Float?
+  categoria   String?
+  empresaId   String?
+  clienteId   String?
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  cliente     Cliente? @relation(fields: [clienteId], references: [id])
+  usuario     User     @relation(fields: [userId], references: [id])
+  
+  @@map("produtos")
+}
+
+model Servico {
+  id          String   @id @default(cuid())
+  nome        String
+  descricao   String?
+  preco       Float?
+  clienteId   String?
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  cliente     Cliente? @relation(fields: [clienteId], references: [id])
+  usuario     User     @relation(fields: [userId], references: [id])  
+  @@map("servicos")
+}
+
+model Reuniao {
+  id          String   @id @default(cuid())
+  titulo      String
+  descricao   String?
+  dataHora    DateTime
+  local       String?
+  clienteId   String?
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  cliente     Cliente? @relation(fields: [clienteId], references: [id])
+  usuario     User     @relation(fields: [userId], references: [id])
+  
+  @@map("reunioes")
+}
+
+model Despesa {
+  id          String   @id @default(cuid())
+  descricao   String
+  valor       Float
+  categoria   String?
+  data        DateTime @default(now())
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  usuario     User @relation(fields: [userId], references: [id])
+  
+  @@map("despesas")
+}
+
+model DespesaRecorrente {
+  id          String   @id @default(cuid())
+  nome        String
+  valor       Float
+  dia         Int      // Dia do mês
+  anual       Boolean  @default(false)
+  mes         Int?     // Se anual = true
+  status      StatusRecorrencia @default(ATIVA)
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  usuario     User @relation(fields: [userId], references: [id])
+  
+  @@map("despesas_recorrentes")
+}
+
+model Dominio {
+  id          String   @id @default(cuid())
+  nome        String   @unique
+  dominio     String
+  clienteId   String?  // Cliente associado ao domínio
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  cliente     Cliente? @relation(fields: [clienteId], references: [id])
+  
+  @@map("dominios")
+}
+
+enum UserRole {
+  SUPER_ADMIN  // Admin do sistema
+  ADMIN        // Admin da empresa
+  USER         // Usuário comum
+  MANAGER      // Gerente
+}
+
+enum StatusContrato {
+  ATIVO
+  INATIVO
+  PAUSADO
+  FINALIZADO
+}
+
+enum StatusRecorrencia {
+  ATIVA
+  INATIVA
+}
