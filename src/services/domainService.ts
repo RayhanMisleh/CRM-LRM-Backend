@@ -4,7 +4,7 @@ import { ConflictError, ValidationError } from '../utils/httpErrors';
 import { parseDateFilters, parsePagination, parseSort } from '../utils/queryParsers';
 
 class DomainService extends BaseService<typeof domainRepository, unknown> {
-  private readonly sortableFields = new Set(['nome', 'dominio', 'createdAt']);
+  private readonly sortableFields = new Set(['name', 'hostname', 'expiresAt', 'createdAt']);
 
   constructor() {
     super(domainRepository);
@@ -20,14 +20,14 @@ class DomainService extends BaseService<typeof domainRepository, unknown> {
     const search = query.search as string | undefined;
     if (search) {
       where.OR = [
-        { nome: { contains: search, mode: 'insensitive' } },
-        { dominio: { contains: search, mode: 'insensitive' } },
+        { name: { contains: search, mode: 'insensitive' } },
+        { hostname: { contains: search, mode: 'insensitive' } },
       ];
     }
 
     const clientId = query.clientId as string | undefined;
     if (clientId) {
-      where.clienteId = clientId;
+      where.clientId = clientId;
     }
 
     if (startDate || endDate) {
@@ -45,27 +45,27 @@ class DomainService extends BaseService<typeof domainRepository, unknown> {
   }
 
   async createDomain(data: Record<string, unknown>) {
-    if (!data.nome) {
+    if (!data.name) {
       throw new ValidationError('Nome é obrigatório');
     }
 
-    if (!data.dominio) {
+    if (!data.hostname) {
       throw new ValidationError('Domínio é obrigatório');
     }
 
-    const existing = await domainRepository.list({ where: { nome: data.nome } });
+    const existing = await domainRepository.list({ where: { hostname: data.hostname } });
     if (existing.length > 0) {
-      throw new ConflictError('Já existe um domínio com este nome');
+      throw new ConflictError('Já existe um domínio com este hostname');
     }
 
     return this.repository.create(data);
   }
 
   async updateDomain(id: string, data: Record<string, unknown>) {
-    if (data.nome) {
-      const existing = await domainRepository.list({ where: { nome: data.nome, id: { not: id } } });
+    if (data.hostname) {
+      const existing = await domainRepository.list({ where: { hostname: data.hostname, id: { not: id } } });
       if (existing.length > 0) {
-        throw new ConflictError('Já existe um domínio com este nome');
+        throw new ConflictError('Já existe um domínio com este hostname');
       }
     }
 

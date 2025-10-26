@@ -6,9 +6,8 @@ import { parseDateFilters, parsePagination, parseSort } from '../utils/queryPars
 class SubscriptionService extends BaseService<typeof subscriptionRepository, unknown> {
   private readonly sortableFields = new Set([
     'status',
-    'dataInicio',
-    'dataFim',
-    'valor',
+    'startDate',
+    'endDate',
     'createdAt',
     'updatedAt',
   ]);
@@ -31,24 +30,24 @@ class SubscriptionService extends BaseService<typeof subscriptionRepository, unk
 
     const clientId = query.clientId as string | undefined;
     if (clientId) {
-      where.clienteId = clientId;
+      where.clientId = clientId;
     }
 
     const planId = query.planId as string | undefined;
     if (planId) {
-      where.planoId = planId;
+      where.planId = planId;
     }
 
     const search = query.search as string | undefined;
     if (search) {
       where.OR = [
-        { cliente: { nome: { contains: search, mode: 'insensitive' } } },
-        { plano: { nome: { contains: search, mode: 'insensitive' } } },
+        { client: { name: { contains: search, mode: 'insensitive' } } },
+        { plan: { name: { contains: search, mode: 'insensitive' } } },
       ];
     }
 
     if (startDate || endDate) {
-      where.dataInicio = {
+      where.startDate = {
         ...(startDate ? { gte: startDate } : {}),
         ...(endDate ? { lte: endDate } : {}),
       };
@@ -62,23 +61,19 @@ class SubscriptionService extends BaseService<typeof subscriptionRepository, unk
   }
 
   async createSubscription(data: Record<string, unknown>) {
-    if (!data.clienteId) {
+    if (!data.clientId) {
       throw new ValidationError('Cliente é obrigatório');
     }
 
-    if (!data.planoId) {
+    if (!data.planId) {
       throw new ValidationError('Plano é obrigatório');
-    }
-
-    if (!data.userId) {
-      throw new ValidationError('Usuário responsável é obrigatório');
     }
 
     const activeSubscription = await subscriptionRepository.list({
       where: {
-        clienteId: data.clienteId,
-        planoId: data.planoId,
-        status: { in: ['ATIVA', 'PENDENTE'] },
+        clientId: data.clientId,
+        planId: data.planId,
+        status: { in: ['ACTIVE', 'PENDING'] },
       },
     });
 
@@ -90,7 +85,7 @@ class SubscriptionService extends BaseService<typeof subscriptionRepository, unk
   }
 
   async updateSubscription(id: string, data: Record<string, unknown>) {
-    if (data.status && !['ATIVA', 'PENDENTE', 'ATRASADA', 'CANCELADA'].includes(data.status as string)) {
+    if (data.status && !['PENDING', 'ACTIVE', 'PAUSED', 'CANCELLED', 'TERMINATED'].includes(data.status as string)) {
       throw new ValidationError('Status de assinatura inválido');
     }
 

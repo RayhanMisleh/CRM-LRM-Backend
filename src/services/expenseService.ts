@@ -4,7 +4,7 @@ import { ValidationError } from '../utils/httpErrors';
 import { parseDateFilters, parsePagination, parseSort } from '../utils/queryParsers';
 
 class ExpenseService extends BaseService<typeof expenseRepository, unknown> {
-  private readonly sortableFields = new Set(['descricao', 'valor', 'data', 'createdAt', 'updatedAt']);
+  private readonly sortableFields = new Set(['title', 'amount', 'incurredAt', 'createdAt', 'updatedAt']);
 
   constructor() {
     super(expenseRepository);
@@ -20,13 +20,18 @@ class ExpenseService extends BaseService<typeof expenseRepository, unknown> {
     const search = query.search as string | undefined;
     if (search) {
       where.OR = [
-        { descricao: { contains: search, mode: 'insensitive' } },
-        { categoria: { contains: search, mode: 'insensitive' } },
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
       ];
     }
 
+    const kind = query.kind as string | undefined;
+    if (kind) {
+      where.kind = kind;
+    }
+
     if (startDate || endDate) {
-      where.data = {
+      where.incurredAt = {
         ...(startDate ? { gte: startDate } : {}),
         ...(endDate ? { lte: endDate } : {}),
       };
@@ -34,22 +39,18 @@ class ExpenseService extends BaseService<typeof expenseRepository, unknown> {
 
     const orderBy = sortBy && this.sortableFields.has(sortBy)
       ? { [sortBy]: sortOrder }
-      : { data: 'desc' };
+      : { incurredAt: 'desc' };
 
     return this.list({ pagination, where, orderBy });
   }
 
   async createExpense(data: Record<string, unknown>) {
-    if (!data.descricao) {
-      throw new ValidationError('Descrição é obrigatória');
+    if (!data.title) {
+      throw new ValidationError('Título é obrigatório');
     }
 
-    if (typeof data.valor !== 'number') {
+    if (data.amount === undefined || data.amount === null || (typeof data.amount !== 'number' && typeof data.amount !== 'string')) {
       throw new ValidationError('Valor é obrigatório');
-    }
-
-    if (!data.userId) {
-      throw new ValidationError('Usuário responsável é obrigatório');
     }
 
     return this.repository.create(data);

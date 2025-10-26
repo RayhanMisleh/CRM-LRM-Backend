@@ -5,11 +5,11 @@ import { parseDateFilters, parsePagination, parseSort } from '../utils/queryPars
 
 class InvoiceService extends BaseService<typeof invoiceRepository, unknown> {
   private readonly sortableFields = new Set([
-    'numero',
-    'valor',
+    'number',
+    'amount',
     'status',
-    'dataEmissao',
-    'dataVencimento',
+    'issuedAt',
+    'dueDate',
     'createdAt',
     'updatedAt',
   ]);
@@ -32,19 +32,19 @@ class InvoiceService extends BaseService<typeof invoiceRepository, unknown> {
 
     const subscriptionId = query.subscriptionId as string | undefined;
     if (subscriptionId) {
-      where.assinaturaId = subscriptionId;
+      where.subscriptionId = subscriptionId;
     }
 
     const search = query.search as string | undefined;
     if (search) {
       where.OR = [
-        { numero: { contains: search, mode: 'insensitive' } },
-        { assinatura: { cliente: { nome: { contains: search, mode: 'insensitive' } } } },
+        { number: { contains: search, mode: 'insensitive' } },
+        { subscription: { client: { name: { contains: search, mode: 'insensitive' } } } },
       ];
     }
 
     if (startDate || endDate) {
-      where.dataEmissao = {
+      where.issuedAt = {
         ...(startDate ? { gte: startDate } : {}),
         ...(endDate ? { lte: endDate } : {}),
       };
@@ -52,22 +52,22 @@ class InvoiceService extends BaseService<typeof invoiceRepository, unknown> {
 
     const orderBy = sortBy && this.sortableFields.has(sortBy)
       ? { [sortBy]: sortOrder }
-      : { dataEmissao: 'desc' };
+      : { issuedAt: 'desc' };
 
     return this.list({ pagination, where, orderBy });
   }
 
   async createInvoice(data: Record<string, unknown>) {
-    if (!data.assinaturaId) {
+    if (!data.subscriptionId) {
       throw new ValidationError('Assinatura é obrigatória');
     }
 
-    if (typeof data.valor !== 'number') {
+    if (data.amount === undefined || data.amount === null || (typeof data.amount !== 'number' && typeof data.amount !== 'string')) {
       throw new ValidationError('Valor é obrigatório');
     }
 
-    if (data.numero) {
-      const existing = await invoiceRepository.list({ where: { numero: data.numero } });
+    if (data.number) {
+      const existing = await invoiceRepository.list({ where: { number: data.number } });
       if (existing.length > 0) {
         throw new ConflictError('Já existe uma fatura com este número');
       }
@@ -77,8 +77,8 @@ class InvoiceService extends BaseService<typeof invoiceRepository, unknown> {
   }
 
   async updateInvoice(id: string, data: Record<string, unknown>) {
-    if (data.numero) {
-      const existing = await invoiceRepository.list({ where: { numero: data.numero, id: { not: id } } });
+    if (data.number) {
+      const existing = await invoiceRepository.list({ where: { number: data.number, id: { not: id } } });
       if (existing.length > 0) {
         throw new ConflictError('Já existe uma fatura com este número');
       }

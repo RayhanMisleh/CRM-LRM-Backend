@@ -4,7 +4,7 @@ import { ConflictError, ValidationError } from '../utils/httpErrors';
 import { parseDateFilters, parsePagination, parseSort } from '../utils/queryParsers';
 
 class ClientService extends BaseService<typeof clientRepository, unknown> {
-  private readonly sortableFields = new Set(['nome', 'email', 'createdAt', 'updatedAt']);
+  private readonly sortableFields = new Set(['name', 'email', 'status', 'createdAt', 'updatedAt']);
 
   constructor() {
     super(clientRepository);
@@ -20,9 +20,20 @@ class ClientService extends BaseService<typeof clientRepository, unknown> {
     const search = query.search as string | undefined;
     if (search) {
       where.OR = [
-        { nome: { contains: search, mode: 'insensitive' } },
+        { name: { contains: search, mode: 'insensitive' } },
         { email: { contains: search, mode: 'insensitive' } },
+        { phone: { contains: search, mode: 'insensitive' } },
       ];
+    }
+
+    const status = query.status as string | undefined;
+    if (status) {
+      where.status = status;
+    }
+
+    const companyId = query.companyId as string | undefined;
+    if (companyId) {
+      where.empresaId = companyId;
     }
 
     if (startDate || endDate) {
@@ -40,17 +51,15 @@ class ClientService extends BaseService<typeof clientRepository, unknown> {
   }
 
   async createClient(data: Record<string, unknown>) {
-    if (!data.nome) {
+    if (!data.name) {
       throw new ValidationError('Nome é obrigatório');
     }
 
-    if (!data.email) {
-      throw new ValidationError('Email é obrigatório');
-    }
-
-    const existing = await clientRepository.list({ where: { email: data.email } });
-    if (existing.length > 0) {
-      throw new ConflictError('Já existe um cliente com este email');
+    if (data.email) {
+      const existing = await clientRepository.list({ where: { email: data.email } });
+      if (existing.length > 0) {
+        throw new ConflictError('Já existe um cliente com este email');
+      }
     }
 
     return this.repository.create(data);

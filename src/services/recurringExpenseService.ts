@@ -4,7 +4,7 @@ import { ValidationError } from '../utils/httpErrors';
 import { parseDateFilters, parsePagination, parseSort } from '../utils/queryParsers';
 
 class RecurringExpenseService extends BaseService<typeof recurringExpenseRepository, unknown> {
-  private readonly sortableFields = new Set(['nome', 'valor', 'dia', 'status', 'createdAt', 'updatedAt']);
+  private readonly sortableFields = new Set(['title', 'amount', 'frequency', 'nextOccurrence', 'createdAt', 'updatedAt']);
 
   constructor() {
     super(recurringExpenseRepository);
@@ -17,14 +17,19 @@ class RecurringExpenseService extends BaseService<typeof recurringExpenseReposit
 
     const where: Record<string, unknown> = {};
 
-    const status = query.status as string | undefined;
-    if (status) {
-      where.status = status;
-    }
-
     const search = query.search as string | undefined;
     if (search) {
-      where.nome = { contains: search, mode: 'insensitive' };
+      where.title = { contains: search, mode: 'insensitive' };
+    }
+
+    const frequency = query.frequency as string | undefined;
+    if (frequency) {
+      where.frequency = frequency;
+    }
+
+    const kind = query.kind as string | undefined;
+    if (kind) {
+      where.kind = kind;
     }
 
     if (startDate || endDate) {
@@ -42,20 +47,12 @@ class RecurringExpenseService extends BaseService<typeof recurringExpenseReposit
   }
 
   async createRecurringExpense(data: Record<string, unknown>) {
-    if (!data.nome) {
-      throw new ValidationError('Nome é obrigatório');
+    if (!data.title) {
+      throw new ValidationError('Título é obrigatório');
     }
 
-    if (typeof data.valor !== 'number') {
+    if (data.amount === undefined || data.amount === null || (typeof data.amount !== 'number' && typeof data.amount !== 'string')) {
       throw new ValidationError('Valor é obrigatório');
-    }
-
-    if (typeof data.dia !== 'number') {
-      throw new ValidationError('Dia de cobrança é obrigatório');
-    }
-
-    if (!data.userId) {
-      throw new ValidationError('Usuário responsável é obrigatório');
     }
 
     return this.repository.create(data);

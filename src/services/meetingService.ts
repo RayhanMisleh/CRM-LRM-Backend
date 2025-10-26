@@ -4,7 +4,7 @@ import { ValidationError } from '../utils/httpErrors';
 import { parseDateFilters, parsePagination, parseSort } from '../utils/queryParsers';
 
 class MeetingService extends BaseService<typeof meetingRepository, unknown> {
-  private readonly sortableFields = new Set(['titulo', 'dataHora', 'createdAt', 'updatedAt']);
+  private readonly sortableFields = new Set(['title', 'scheduledAt', 'createdAt', 'updatedAt']);
 
   constructor() {
     super(meetingRepository);
@@ -20,18 +20,18 @@ class MeetingService extends BaseService<typeof meetingRepository, unknown> {
     const search = query.search as string | undefined;
     if (search) {
       where.OR = [
-        { titulo: { contains: search, mode: 'insensitive' } },
-        { descricao: { contains: search, mode: 'insensitive' } },
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
       ];
     }
 
     const clientId = query.clientId as string | undefined;
     if (clientId) {
-      where.clienteId = clientId;
+      where.clientId = clientId;
     }
 
     if (startDate || endDate) {
-      where.dataHora = {
+      where.scheduledAt = {
         ...(startDate ? { gte: startDate } : {}),
         ...(endDate ? { lte: endDate } : {}),
       };
@@ -39,22 +39,18 @@ class MeetingService extends BaseService<typeof meetingRepository, unknown> {
 
     const orderBy = sortBy && this.sortableFields.has(sortBy)
       ? { [sortBy]: sortOrder }
-      : { dataHora: 'desc' };
+      : { scheduledAt: 'desc' };
 
     return this.list({ pagination, where, orderBy });
   }
 
   async createMeeting(data: Record<string, unknown>) {
-    if (!data.titulo) {
+    if (!data.title) {
       throw new ValidationError('Título é obrigatório');
     }
 
-    if (!data.dataHora) {
+    if (!data.scheduledAt) {
       throw new ValidationError('Data e hora são obrigatórias');
-    }
-
-    if (!data.userId) {
-      throw new ValidationError('Usuário responsável é obrigatório');
     }
 
     return this.repository.create(data);

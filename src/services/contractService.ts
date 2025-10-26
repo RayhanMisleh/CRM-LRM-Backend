@@ -4,7 +4,16 @@ import { ConflictError, ValidationError } from '../utils/httpErrors';
 import { parseDateFilters, parsePagination, parseSort } from '../utils/queryParsers';
 
 class ContractService extends BaseService<typeof contractRepository, unknown> {
-  private readonly sortableFields = new Set(['titulo', 'numero', 'status', 'createdAt', 'updatedAt', 'valor']);
+  private readonly sortableFields = new Set([
+    'title',
+    'reference',
+    'status',
+    'createdAt',
+    'updatedAt',
+    'amount',
+    'startDate',
+    'endDate',
+  ]);
 
   constructor() {
     super(contractRepository);
@@ -22,21 +31,21 @@ class ContractService extends BaseService<typeof contractRepository, unknown> {
       where.status = status;
     }
 
-    const clienteId = query.clientId as string | undefined;
-    if (clienteId) {
-      where.clienteId = clienteId;
+    const clientId = query.clientId as string | undefined;
+    if (clientId) {
+      where.clientId = clientId;
     }
 
     const search = query.search as string | undefined;
     if (search) {
       where.OR = [
-        { titulo: { contains: search, mode: 'insensitive' } },
-        { numero: { contains: search, mode: 'insensitive' } },
+        { title: { contains: search, mode: 'insensitive' } },
+        { reference: { contains: search, mode: 'insensitive' } },
       ];
     }
 
     if (startDate || endDate) {
-      where.createdAt = {
+      where.startDate = {
         ...(startDate ? { gte: startDate } : {}),
         ...(endDate ? { lte: endDate } : {}),
       };
@@ -50,20 +59,16 @@ class ContractService extends BaseService<typeof contractRepository, unknown> {
   }
 
   async createContract(data: Record<string, unknown>) {
-    if (!data.titulo) {
+    if (!data.title) {
       throw new ValidationError('Título é obrigatório');
     }
 
-    if (!data.clienteId) {
+    if (!data.clientId) {
       throw new ValidationError('Cliente é obrigatório');
     }
 
-    if (!data.userId) {
-      throw new ValidationError('Usuário responsável é obrigatório');
-    }
-
-    if (data.numero) {
-      const existing = await contractRepository.list({ where: { numero: data.numero } });
+    if (data.reference) {
+      const existing = await contractRepository.list({ where: { reference: data.reference } });
       if (existing.length > 0) {
         throw new ConflictError('Já existe um contrato com este número');
       }
@@ -73,8 +78,8 @@ class ContractService extends BaseService<typeof contractRepository, unknown> {
   }
 
   async updateContract(id: string, data: Record<string, unknown>) {
-    if (data.numero) {
-      const existing = await contractRepository.list({ where: { numero: data.numero, id: { not: id } } });
+    if (data.reference) {
+      const existing = await contractRepository.list({ where: { reference: data.reference, id: { not: id } } });
       if (existing.length > 0) {
         throw new ConflictError('Já existe um contrato com este número');
       }

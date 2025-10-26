@@ -1,8 +1,8 @@
 import BaseRepository from './baseRepository';
 
-class ContactRepository extends BaseRepository<'contato'> {
+class ContactRepository extends BaseRepository<'contact'> {
   constructor() {
-    super('contato');
+    super('contact');
   }
 }
 

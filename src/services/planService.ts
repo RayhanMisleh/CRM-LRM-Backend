@@ -4,7 +4,7 @@ import { ConflictError, ValidationError } from '../utils/httpErrors';
 import { parseDateFilters, parsePagination, parseSort } from '../utils/queryParsers';
 
 class PlanService extends BaseService<typeof planRepository, unknown> {
-  private readonly sortableFields = new Set(['nome', 'preco', 'status', 'ciclo', 'createdAt', 'updatedAt']);
+  private readonly sortableFields = new Set(['name', 'price', 'billingCycle', 'createdAt', 'updatedAt']);
 
   constructor() {
     super(planRepository);
@@ -17,14 +17,9 @@ class PlanService extends BaseService<typeof planRepository, unknown> {
 
     const where: Record<string, unknown> = {};
 
-    const status = query.status as string | undefined;
-    if (status) {
-      where.status = status;
-    }
-
     const search = query.search as string | undefined;
     if (search) {
-      where.nome = { contains: search, mode: 'insensitive' };
+      where.name = { contains: search, mode: 'insensitive' };
     }
 
     if (startDate || endDate) {
@@ -42,15 +37,15 @@ class PlanService extends BaseService<typeof planRepository, unknown> {
   }
 
   async createPlan(data: Record<string, unknown>) {
-    if (!data.nome) {
+    if (!data.name) {
       throw new ValidationError('Nome é obrigatório');
     }
 
-    if (typeof data.preco !== 'number') {
+    if (data.price === undefined || data.price === null || (typeof data.price !== 'number' && typeof data.price !== 'string')) {
       throw new ValidationError('Preço é obrigatório');
     }
 
-    const existing = await planRepository.list({ where: { nome: data.nome } });
+    const existing = await planRepository.list({ where: { name: data.name } });
     if (existing.length > 0) {
       throw new ConflictError('Já existe um plano com este nome');
     }
@@ -59,8 +54,8 @@ class PlanService extends BaseService<typeof planRepository, unknown> {
   }
 
   async updatePlan(id: string, data: Record<string, unknown>) {
-    if (data.nome) {
-      const existing = await planRepository.list({ where: { nome: data.nome, id: { not: id } } });
+    if (data.name) {
+      const existing = await planRepository.list({ where: { name: data.name, id: { not: id } } });
       if (existing.length > 0) {
         throw new ConflictError('Já existe um plano com este nome');
       }

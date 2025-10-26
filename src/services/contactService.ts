@@ -4,7 +4,7 @@ import { ConflictError, ValidationError } from '../utils/httpErrors';
 import { parseDateFilters, parsePagination, parseSort } from '../utils/queryParsers';
 
 class ContactService extends BaseService<typeof contactRepository, unknown> {
-  private readonly sortableFields = new Set(['nome', 'email', 'telefone', 'createdAt', 'updatedAt']);
+  private readonly sortableFields = new Set(['name', 'email', 'phone', 'createdAt', 'updatedAt']);
 
   constructor() {
     super(contactRepository);
@@ -20,18 +20,18 @@ class ContactService extends BaseService<typeof contactRepository, unknown> {
     const search = query.search as string | undefined;
     if (search) {
       where.OR = [
-        { nome: { contains: search, mode: 'insensitive' } },
+        { name: { contains: search, mode: 'insensitive' } },
         { email: { contains: search, mode: 'insensitive' } },
-        { telefone: { contains: search, mode: 'insensitive' } },
+        { phone: { contains: search, mode: 'insensitive' } },
       ];
     }
 
     const status = query.status as string | undefined;
     if (status === 'linked') {
-      where.clienteId = { not: null };
+      where.clientId = { not: null };
     }
     if (status === 'unlinked') {
-      where.clienteId = null;
+      where.clientId = null;
     }
 
     if (startDate || endDate) {
@@ -49,11 +49,11 @@ class ContactService extends BaseService<typeof contactRepository, unknown> {
   }
 
   async createContact(data: Record<string, unknown>) {
-    if (!data.nome) {
+    if (!data.name) {
       throw new ValidationError('Nome é obrigatório');
     }
 
-    if (!data.email && !data.telefone) {
+    if (!data.email && !data.phone) {
       throw new ValidationError('Informe email ou telefone');
     }
 
