@@ -1,57 +1,49 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from 'express';
+
 import planService from '../services/planService';
-import { sendSuccess } from '../utils/response';
+import { asyncHandler, sendSuccess } from '../lib/http';
+import {
+  CreatePlanInput,
+  ListPlansQuery,
+  UpdatePlanInput,
+} from '../validators/plan';
 
 class PlanController {
-  async list(req: Request, res: Response, next: NextFunction) {
-    try {
-      const result = await planService.listPlans(req.query);
-      return sendSuccess(res, 200, result.data, {
-        total: result.total,
-        page: result.page,
-        pageSize: result.pageSize,
-        totalPages: result.totalPages,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+  list = asyncHandler(async (req: Request, res: Response) => {
+    const query = (req.validated?.query ?? req.query) as ListPlansQuery;
+    const result = await planService.listPlans(query);
+    return sendSuccess(res, 200, result.data, {
+      total: result.total,
+      page: result.page,
+      pageSize: result.pageSize,
+      totalPages: result.totalPages,
+    });
+  });
 
-  async get(req: Request, res: Response, next: NextFunction) {
-    try {
-      const plan = await planService.getById(req.params.id);
-      return sendSuccess(res, 200, plan);
-    } catch (error) {
-      next(error);
-    }
-  }
+  get = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = (req.validated?.params ?? req.params) as { id: string };
+    const plan = await planService.getById(id);
+    return sendSuccess(res, 200, plan);
+  });
 
-  async create(req: Request, res: Response, next: NextFunction) {
-    try {
-      const plan = await planService.createPlan(req.body);
-      return sendSuccess(res, 201, plan);
-    } catch (error) {
-      next(error);
-    }
-  }
+  create = asyncHandler(async (req: Request, res: Response) => {
+    const payload = (req.validated?.body ?? req.body) as CreatePlanInput;
+    const plan = await planService.createPlan(payload);
+    return sendSuccess(res, 201, plan);
+  });
 
-  async update(req: Request, res: Response, next: NextFunction) {
-    try {
-      const plan = await planService.updatePlan(req.params.id, req.body);
-      return sendSuccess(res, 200, plan);
-    } catch (error) {
-      next(error);
-    }
-  }
+  update = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = (req.validated?.params ?? req.params) as { id: string };
+    const payload = (req.validated?.body ?? req.body) as UpdatePlanInput;
+    const plan = await planService.updatePlan(id, payload);
+    return sendSuccess(res, 200, plan);
+  });
 
-  async remove(req: Request, res: Response, next: NextFunction) {
-    try {
-      await planService.delete(req.params.id);
-      return sendSuccess(res, 200, { id: req.params.id });
-    } catch (error) {
-      next(error);
-    }
-  }
+  remove = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = (req.validated?.params ?? req.params) as { id: string };
+    await planService.delete(id);
+    return sendSuccess(res, 200, { id });
+  });
 }
 
 export default new PlanController();

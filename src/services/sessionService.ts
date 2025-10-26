@@ -1,42 +1,55 @@
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const prisma = require("../config/prisma");
+import bcrypt from 'bcryptjs';
+import jwt, { JwtPayload } from 'jsonwebtoken';
+import { UserRole } from '@prisma/client';
+
+import prisma from '../lib/db';
+import { ConflictError, NotFoundError, UnauthorizedError } from '../lib/http';
+import { env } from '../lib/env';
+import { LoginInput, SignUpInput } from '../validators/session';
+
+interface TokenPayload {
+  id: string;
+  email: string;
+  role: UserRole;
+  empresaId?: string | null;
+}
+
+interface AuthenticatedUser {
+  id: string;
+  email: string;
+  name: string | null;
+  role: UserRole;
+  empresaId: string | null;
+  createdAt: Date;
+  empresa: {
+    id: string;
+    nome: string;
+  } | null;
+}
 
 class SessionService {
-  /**
-   * Registra um novo usuário
-   */
-  async signUp({ email, password, name, role, empresaId }) {
-    // Verificar se o usuário já existe
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
+  async signUp({ email, password, name, role, empresaId }: SignUpInput) {
+    const existingUser = await prisma.user.findUnique({ where: { email } });
 
     if (existingUser) {
-      throw new Error("Email já está em uso");
+      throw new ConflictError('Email já está em uso');
     }
 
-    // Validar empresaId se fornecido
     if (empresaId) {
-      const empresa = await prisma.empresa.findUnique({
-        where: { id: empresaId },
-      });
-
+      const empresa = await prisma.empresa.findUnique({ where: { id: empresaId } });
       if (!empresa) {
-        throw new Error("Empresa não encontrada");
+        throw new NotFoundError('Empresa não encontrada');
       }
     }
 
-    // Hash da senha
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Criar usuário
     const user = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
         name,
-        role: role || "USER",
+        role: role ?? 'USER',
         empresaId,
       },
       select: {
@@ -55,22 +68,19 @@ class SessionService {
       },
     });
 
-    // Gerar token JWT
     const token = this.generateToken(user);
+    const session = await prisma.session.create({
+      data: {
+        userId: user.id,
+        token,
+        expiresAt: this.getSessionExpiry(),
+      },
+    });
 
-    // Criar sessão no banco
-
-    return {
-      user,
-      token
-    };
+    return { user, token, sessionId: session.id };
   }
 
-  /**
-   * Faz login de um usuário
-   */
-  async login({ email, password }) {
-    // Buscar usuário
+  async login({ email, password }: LoginInput) {
     const user = await prisma.user.findUnique({
       where: { email },
       include: {
@@ -84,30 +94,25 @@ class SessionService {
     });
 
     if (!user) {
-      throw new Error("Credenciais inválidas");
+      throw new UnauthorizedError('Credenciais inválidas');
     }
 
-    // Verificar senha
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      throw new Error("Credenciais inválidas");
+      throw new UnauthorizedError('Credenciais inválidas');
     }
 
-    // Gerar token JWT
     const token = this.generateToken(user);
-
-    // Criar sessão no banco
     const session = await prisma.session.create({
       data: {
         userId: user.id,
         token,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 dias
+        expiresAt: this.getSessionExpiry(),
       },
     });
 
-    // Remover senha do objeto de retorno
-    const { password: _, ...userWithoutPassword } = user;
+    const { password: _password, ...userWithoutPassword } = user;
 
     return {
       user: userWithoutPassword,
@@ -116,34 +121,21 @@ class SessionService {
     };
   }
 
-  /**
-   * Faz logout de um usuário (invalida a sessão)
-   */
-  async logout(token) {
-    // Buscar e deletar a sessão pelo token
-    const session = await prisma.session.findFirst({
-      where: { token },
-    });
+  async logout(token: string) {
+    const session = await prisma.session.findFirst({ where: { token } });
 
     if (session) {
-      await prisma.session.delete({
-        where: { id: session.id },
-      });
+      await prisma.session.delete({ where: { id: session.id } });
     }
 
-    return { message: "Logout realizado com sucesso" };
+    return { message: 'Logout realizado com sucesso' };
   }
 
-  /**
-   * Valida uma sessão existente
-   */
-  async validateSession(token) {
+  async validateSession(token: string) {
     const session = await prisma.session.findFirst({
       where: {
         token,
-        expiresAt: {
-          gte: new Date(),
-        },
+        expiresAt: { gte: new Date() },
       },
       include: {
         user: {
@@ -165,16 +157,13 @@ class SessionService {
     });
 
     if (!session) {
-      throw new Error("Sessão inválida ou expirada");
+      throw new UnauthorizedError('Sessão inválida ou expirada');
     }
 
     return session.user;
   }
 
-  /**
-   * Renova uma sessão existente
-   */
-  async refreshSession(token) {
+  async refreshSession(token: string) {
     const session = await prisma.session.findFirst({
       where: { token },
       include: {
@@ -191,18 +180,16 @@ class SessionService {
     });
 
     if (!session) {
-      throw new Error("Sessão não encontrada");
+      throw new NotFoundError('Sessão não encontrada');
     }
 
-    // Gerar novo token
-    const newToken = this.generateToken(session.user);
+    const newToken = this.generateToken(session.user as AuthenticatedUser);
 
-    // Atualizar sessão
     const updatedSession = await prisma.session.update({
       where: { id: session.id },
       data: {
         token: newToken,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 dias
+        expiresAt: this.getSessionExpiry(),
       },
     });
 
@@ -212,9 +199,6 @@ class SessionService {
     };
   }
 
-  /**
-   * Limpa sessões expiradas
-   */
   async cleanExpiredSessions() {
     const result = await prisma.session.deleteMany({
       where: {
@@ -227,32 +211,33 @@ class SessionService {
     return { deletedCount: result.count };
   }
 
-  /**
-   * Gera um token JWT
-   */
-  generateToken(user) {
-    const payload = {
+  generateToken(user: TokenPayload | AuthenticatedUser) {
+    const payload: TokenPayload = {
       id: user.id,
       email: user.email,
       role: user.role,
       empresaId: user.empresaId,
     };
 
-    return jwt.sign(payload, process.env.JWT_SECRET || "your-secret-key", {
-      expiresIn: "7d",
-    });
+    return jwt.sign(payload, env.JWT_SECRET, { expiresIn: '7d' });
   }
 
-  /**
-   * Decodifica e verifica um token JWT
-   */
-  verifyToken(token) {
+  verifyToken(token: string) {
     try {
-      return jwt.verify(token, process.env.JWT_SECRET || "your-secret-key");
+      const decoded = jwt.verify(token, env.JWT_SECRET);
+      if (typeof decoded === 'string') {
+        return JSON.parse(decoded) as TokenPayload;
+      }
+
+      return decoded as TokenPayload & JwtPayload;
     } catch (error) {
-      throw new Error("Token inválido");
+      throw new UnauthorizedError('Token inválido', error);
     }
+  }
+
+  private getSessionExpiry() {
+    return new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
   }
 }
 
-module.exports = new SessionService();
+export default new SessionService();

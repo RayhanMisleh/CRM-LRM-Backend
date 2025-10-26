@@ -1,58 +1,51 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from 'express';
+
 import clientService from '../services/clientService';
-import { sendSuccess } from '../utils/response';
+import { asyncHandler, sendSuccess } from '../lib/http';
+import {
+  CreateClientInput,
+  ListClientsQuery,
+  UpdateClientInput,
+} from '../validators/client';
 
 class ClientController {
-  async list(req: Request, res: Response, next: NextFunction) {
-    try {
-      const result = await clientService.listClients(req.query);
-      return sendSuccess(res, 200, result.data, {
-        total: result.total,
-        page: result.page,
-        pageSize: result.pageSize,
-        totalPages: result.totalPages,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+  list = asyncHandler(async (req: Request, res: Response) => {
+    const query = (req.validated?.query ?? req.query) as ListClientsQuery;
+    const result = await clientService.listClients(query);
 
-  async get(req: Request, res: Response, next: NextFunction) {
-    try {
-      const client = await clientService.getById(req.params.id);
-      return sendSuccess(res, 200, client);
-    } catch (error) {
-      next(error);
-    }
-  }
+    return sendSuccess(res, 200, result.data, {
+      total: result.total,
+      page: result.page,
+      pageSize: result.pageSize,
+      totalPages: result.totalPages,
+    });
+  });
 
-  async create(req: Request, res: Response, next: NextFunction) {
-    try {
-      // TODO(opportunity): Automatizar a criação de clientes a partir da conversão de oportunidades.
-      const client = await clientService.createClient(req.body);
-      return sendSuccess(res, 201, client);
-    } catch (error) {
-      next(error);
-    }
-  }
+  get = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = (req.validated?.params ?? req.params) as { id: string };
+    const client = await clientService.getById(id);
+    return sendSuccess(res, 200, client);
+  });
 
-  async update(req: Request, res: Response, next: NextFunction) {
-    try {
-      const client = await clientService.updateClient(req.params.id, req.body);
-      return sendSuccess(res, 200, client);
-    } catch (error) {
-      next(error);
-    }
-  }
+  create = asyncHandler(async (req: Request, res: Response) => {
+    // TODO(opportunity): Automatizar a criação de clientes a partir da conversão de oportunidades.
+    const payload = (req.validated?.body ?? req.body) as CreateClientInput;
+    const client = await clientService.createClient(payload);
+    return sendSuccess(res, 201, client);
+  });
 
-  async remove(req: Request, res: Response, next: NextFunction) {
-    try {
-      await clientService.delete(req.params.id);
-      return sendSuccess(res, 200, { id: req.params.id });
-    } catch (error) {
-      next(error);
-    }
-  }
+  update = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = (req.validated?.params ?? req.params) as { id: string };
+    const payload = (req.validated?.body ?? req.body) as UpdateClientInput;
+    const client = await clientService.updateClient(id, payload);
+    return sendSuccess(res, 200, client);
+  });
+
+  remove = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = (req.validated?.params ?? req.params) as { id: string };
+    await clientService.delete(id);
+    return sendSuccess(res, 200, { id });
+  });
 }
 
 export default new ClientController();

@@ -1,7 +1,8 @@
 import BaseService from './baseService';
 import planRepository from '../repositories/planRepository';
-import { ConflictError, ValidationError } from '../utils/httpErrors';
+import { ConflictError } from '../lib/http';
 import { parseDateFilters, parsePagination, parseSort } from '../utils/queryParsers';
+import { CreatePlanInput, ListPlansQuery, UpdatePlanInput } from '../validators/plan';
 
 class PlanService extends BaseService<typeof planRepository, unknown> {
   private readonly sortableFields = new Set(['name', 'price', 'billingCycle', 'createdAt', 'updatedAt']);
@@ -10,14 +11,14 @@ class PlanService extends BaseService<typeof planRepository, unknown> {
     super(planRepository);
   }
 
-  async listPlans(query: Record<string, unknown>) {
-    const pagination = parsePagination(query.page as string | undefined, query.pageSize as string | undefined);
-    const { sortBy, sortOrder } = parseSort(query.sortBy as string | undefined, query.sortOrder as string | undefined);
-    const { startDate, endDate } = parseDateFilters(query.startDate as string | undefined, query.endDate as string | undefined);
+  async listPlans(query: ListPlansQuery) {
+    const pagination = parsePagination(query.page, query.pageSize);
+    const { sortBy, sortOrder } = parseSort(query.sortBy, query.sortOrder);
+    const { startDate, endDate } = parseDateFilters(query.startDate, query.endDate);
 
     const where: Record<string, unknown> = {};
 
-    const search = query.search as string | undefined;
+    const search = query.search;
     if (search) {
       where.name = { contains: search, mode: 'insensitive' };
     }
@@ -36,15 +37,7 @@ class PlanService extends BaseService<typeof planRepository, unknown> {
     return this.list({ pagination, where, orderBy });
   }
 
-  async createPlan(data: Record<string, unknown>) {
-    if (!data.name) {
-      throw new ValidationError('Nome é obrigatório');
-    }
-
-    if (data.price === undefined || data.price === null || (typeof data.price !== 'number' && typeof data.price !== 'string')) {
-      throw new ValidationError('Preço é obrigatório');
-    }
-
+  async createPlan(data: CreatePlanInput) {
     const existing = await planRepository.list({ where: { name: data.name } });
     if (existing.length > 0) {
       throw new ConflictError('Já existe um plano com este nome');
@@ -53,7 +46,7 @@ class PlanService extends BaseService<typeof planRepository, unknown> {
     return this.repository.create(data);
   }
 
-  async updatePlan(id: string, data: Record<string, unknown>) {
+  async updatePlan(id: string, data: UpdatePlanInput) {
     if (data.name) {
       const existing = await planRepository.list({ where: { name: data.name, id: { not: id } } });
       if (existing.length > 0) {

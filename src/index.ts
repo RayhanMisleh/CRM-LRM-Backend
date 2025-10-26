@@ -1,14 +1,11 @@
-import dotenv from 'dotenv';
-
 import app from './app';
+import { env } from './lib/env';
 
-dotenv.config();
-
-const PORT = Number(process.env.PORT ?? 3001);
+const PORT = env.PORT;
 
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV ?? 'development'}`);
+  console.log(`📊 Environment: ${env.NODE_ENV}`);
   console.log(`🔗 URL: http://localhost:${PORT}`);
   console.log(`🔐 Auth endpoints: http://localhost:${PORT}/api/auth`);
 });

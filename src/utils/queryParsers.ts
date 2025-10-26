@@ -20,7 +20,10 @@ export interface DateFilterParams {
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 100;
 
-export const parsePagination = (pageParam?: string, pageSizeParam?: string): PaginationParams => {
+export const parsePagination = (
+  pageParam?: string | number,
+  pageSizeParam?: string | number
+): PaginationParams => {
   const page = Math.max(Number(pageParam) || 1, 1);
   const parsedPageSize = Number(pageSizeParam) || DEFAULT_PAGE_SIZE;
   const pageSize = Math.min(Math.max(parsedPageSize, 1), MAX_PAGE_SIZE);
@@ -42,9 +45,20 @@ export const parseSort = (sortBy?: string, sortOrder?: string): SortParams => {
   };
 };
 
-export const parseDateFilters = (startDate?: string, endDate?: string): DateFilterParams => {
-  const parsedStartDate = startDate ? new Date(startDate) : undefined;
-  const parsedEndDate = endDate ? new Date(endDate) : undefined;
+export const parseDateFilters = (
+  startDate?: string | Date,
+  endDate?: string | Date
+): DateFilterParams => {
+  const parsedStartDate = startDate
+    ? startDate instanceof Date
+      ? startDate
+      : new Date(startDate)
+    : undefined;
+  const parsedEndDate = endDate
+    ? endDate instanceof Date
+      ? endDate
+      : new Date(endDate)
+    : undefined;
 
   return {
     startDate: Number.isNaN(parsedStartDate?.getTime()) ? undefined : parsedStartDate,

@@ -1,57 +1,49 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from 'express';
+
 import recurringExpenseService from '../services/recurringExpenseService';
-import { sendSuccess } from '../utils/response';
+import { asyncHandler, sendSuccess } from '../lib/http';
+import {
+  CreateRecurringExpenseInput,
+  ListRecurringExpensesQuery,
+  UpdateRecurringExpenseInput,
+} from '../validators/recurringExpense';
 
 class RecurringExpenseController {
-  async list(req: Request, res: Response, next: NextFunction) {
-    try {
-      const result = await recurringExpenseService.listRecurringExpenses(req.query);
-      return sendSuccess(res, 200, result.data, {
-        total: result.total,
-        page: result.page,
-        pageSize: result.pageSize,
-        totalPages: result.totalPages,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+  list = asyncHandler(async (req: Request, res: Response) => {
+    const query = (req.validated?.query ?? req.query) as ListRecurringExpensesQuery;
+    const result = await recurringExpenseService.listRecurringExpenses(query);
+    return sendSuccess(res, 200, result.data, {
+      total: result.total,
+      page: result.page,
+      pageSize: result.pageSize,
+      totalPages: result.totalPages,
+    });
+  });
 
-  async get(req: Request, res: Response, next: NextFunction) {
-    try {
-      const recurringExpense = await recurringExpenseService.getById(req.params.id);
-      return sendSuccess(res, 200, recurringExpense);
-    } catch (error) {
-      next(error);
-    }
-  }
+  get = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = (req.validated?.params ?? req.params) as { id: string };
+    const recurringExpense = await recurringExpenseService.getById(id);
+    return sendSuccess(res, 200, recurringExpense);
+  });
 
-  async create(req: Request, res: Response, next: NextFunction) {
-    try {
-      const recurringExpense = await recurringExpenseService.createRecurringExpense(req.body);
-      return sendSuccess(res, 201, recurringExpense);
-    } catch (error) {
-      next(error);
-    }
-  }
+  create = asyncHandler(async (req: Request, res: Response) => {
+    const payload = (req.validated?.body ?? req.body) as CreateRecurringExpenseInput;
+    const recurringExpense = await recurringExpenseService.createRecurringExpense(payload);
+    return sendSuccess(res, 201, recurringExpense);
+  });
 
-  async update(req: Request, res: Response, next: NextFunction) {
-    try {
-      const recurringExpense = await recurringExpenseService.updateRecurringExpense(req.params.id, req.body);
-      return sendSuccess(res, 200, recurringExpense);
-    } catch (error) {
-      next(error);
-    }
-  }
+  update = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = (req.validated?.params ?? req.params) as { id: string };
+    const payload = (req.validated?.body ?? req.body) as UpdateRecurringExpenseInput;
+    const recurringExpense = await recurringExpenseService.updateRecurringExpense(id, payload);
+    return sendSuccess(res, 200, recurringExpense);
+  });
 
-  async remove(req: Request, res: Response, next: NextFunction) {
-    try {
-      await recurringExpenseService.delete(req.params.id);
-      return sendSuccess(res, 200, { id: req.params.id });
-    } catch (error) {
-      next(error);
-    }
-  }
+  remove = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = (req.validated?.params ?? req.params) as { id: string };
+    await recurringExpenseService.delete(id);
+    return sendSuccess(res, 200, { id });
+  });
 }
 
 export default new RecurringExpenseController();

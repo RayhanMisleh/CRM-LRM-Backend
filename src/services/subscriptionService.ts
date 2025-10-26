@@ -1,7 +1,12 @@
 import BaseService from './baseService';
 import subscriptionRepository from '../repositories/subscriptionRepository';
-import { ConflictError, ValidationError } from '../utils/httpErrors';
+import { ConflictError } from '../lib/http';
 import { parseDateFilters, parsePagination, parseSort } from '../utils/queryParsers';
+import {
+  CreateSubscriptionInput,
+  ListSubscriptionsQuery,
+  UpdateSubscriptionInput,
+} from '../validators/subscription';
 
 class SubscriptionService extends BaseService<typeof subscriptionRepository, unknown> {
   private readonly sortableFields = new Set([
@@ -16,29 +21,29 @@ class SubscriptionService extends BaseService<typeof subscriptionRepository, unk
     super(subscriptionRepository);
   }
 
-  async listSubscriptions(query: Record<string, unknown>) {
-    const pagination = parsePagination(query.page as string | undefined, query.pageSize as string | undefined);
-    const { sortBy, sortOrder } = parseSort(query.sortBy as string | undefined, query.sortOrder as string | undefined);
-    const { startDate, endDate } = parseDateFilters(query.startDate as string | undefined, query.endDate as string | undefined);
+  async listSubscriptions(query: ListSubscriptionsQuery) {
+    const pagination = parsePagination(query.page, query.pageSize);
+    const { sortBy, sortOrder } = parseSort(query.sortBy, query.sortOrder);
+    const { startDate, endDate } = parseDateFilters(query.startDate, query.endDate);
 
     const where: Record<string, unknown> = {};
 
-    const status = query.status as string | undefined;
+    const status = query.status;
     if (status) {
       where.status = status;
     }
 
-    const clientId = query.clientId as string | undefined;
+    const clientId = query.clientId;
     if (clientId) {
       where.clientId = clientId;
     }
 
-    const planId = query.planId as string | undefined;
+    const planId = query.planId;
     if (planId) {
       where.planId = planId;
     }
 
-    const search = query.search as string | undefined;
+    const search = query.search;
     if (search) {
       where.OR = [
         { client: { name: { contains: search, mode: 'insensitive' } } },
@@ -60,15 +65,7 @@ class SubscriptionService extends BaseService<typeof subscriptionRepository, unk
     return this.list({ pagination, where, orderBy });
   }
 
-  async createSubscription(data: Record<string, unknown>) {
-    if (!data.clientId) {
-      throw new ValidationError('Cliente é obrigatório');
-    }
-
-    if (!data.planId) {
-      throw new ValidationError('Plano é obrigatório');
-    }
-
+  async createSubscription(data: CreateSubscriptionInput) {
     const activeSubscription = await subscriptionRepository.list({
       where: {
         clientId: data.clientId,
@@ -84,11 +81,7 @@ class SubscriptionService extends BaseService<typeof subscriptionRepository, unk
     return this.repository.create(data);
   }
 
-  async updateSubscription(id: string, data: Record<string, unknown>) {
-    if (data.status && !['PENDING', 'ACTIVE', 'PAUSED', 'CANCELLED', 'TERMINATED'].includes(data.status as string)) {
-      throw new ValidationError('Status de assinatura inválido');
-    }
-
+  async updateSubscription(id: string, data: UpdateSubscriptionInput) {
     return this.repository.update(id, data);
   }
 }

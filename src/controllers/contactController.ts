@@ -1,57 +1,49 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from 'express';
+
 import contactService from '../services/contactService';
-import { sendSuccess } from '../utils/response';
+import { asyncHandler, sendSuccess } from '../lib/http';
+import {
+  CreateContactInput,
+  ListContactsQuery,
+  UpdateContactInput,
+} from '../validators/contact';
 
 class ContactController {
-  async list(req: Request, res: Response, next: NextFunction) {
-    try {
-      const result = await contactService.listContacts(req.query);
-      return sendSuccess(res, 200, result.data, {
-        total: result.total,
-        page: result.page,
-        pageSize: result.pageSize,
-        totalPages: result.totalPages,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+  list = asyncHandler(async (req: Request, res: Response) => {
+    const query = (req.validated?.query ?? req.query) as ListContactsQuery;
+    const result = await contactService.listContacts(query);
+    return sendSuccess(res, 200, result.data, {
+      total: result.total,
+      page: result.page,
+      pageSize: result.pageSize,
+      totalPages: result.totalPages,
+    });
+  });
 
-  async get(req: Request, res: Response, next: NextFunction) {
-    try {
-      const contact = await contactService.getById(req.params.id);
-      return sendSuccess(res, 200, contact);
-    } catch (error) {
-      next(error);
-    }
-  }
+  get = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = (req.validated?.params ?? req.params) as { id: string };
+    const contact = await contactService.getById(id);
+    return sendSuccess(res, 200, contact);
+  });
 
-  async create(req: Request, res: Response, next: NextFunction) {
-    try {
-      const contact = await contactService.createContact(req.body);
-      return sendSuccess(res, 201, contact);
-    } catch (error) {
-      next(error);
-    }
-  }
+  create = asyncHandler(async (req: Request, res: Response) => {
+    const payload = (req.validated?.body ?? req.body) as CreateContactInput;
+    const contact = await contactService.createContact(payload);
+    return sendSuccess(res, 201, contact);
+  });
 
-  async update(req: Request, res: Response, next: NextFunction) {
-    try {
-      const contact = await contactService.updateContact(req.params.id, req.body);
-      return sendSuccess(res, 200, contact);
-    } catch (error) {
-      next(error);
-    }
-  }
+  update = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = (req.validated?.params ?? req.params) as { id: string };
+    const payload = (req.validated?.body ?? req.body) as UpdateContactInput;
+    const contact = await contactService.updateContact(id, payload);
+    return sendSuccess(res, 200, contact);
+  });
 
-  async remove(req: Request, res: Response, next: NextFunction) {
-    try {
-      await contactService.delete(req.params.id);
-      return sendSuccess(res, 200, { id: req.params.id });
-    } catch (error) {
-      next(error);
-    }
-  }
+  remove = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = (req.validated?.params ?? req.params) as { id: string };
+    await contactService.delete(id);
+    return sendSuccess(res, 200, { id });
+  });
 }
 
 export default new ContactController();

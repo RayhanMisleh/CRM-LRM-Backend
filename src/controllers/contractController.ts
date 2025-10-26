@@ -1,58 +1,50 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from 'express';
+
 import contractService from '../services/contractService';
-import { sendSuccess } from '../utils/response';
+import { asyncHandler, sendSuccess } from '../lib/http';
+import {
+  CreateContractInput,
+  ListContractsQuery,
+  UpdateContractInput,
+} from '../validators/contract';
 
 class ContractController {
-  async list(req: Request, res: Response, next: NextFunction) {
-    try {
-      const result = await contractService.listContracts(req.query);
-      return sendSuccess(res, 200, result.data, {
-        total: result.total,
-        page: result.page,
-        pageSize: result.pageSize,
-        totalPages: result.totalPages,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+  list = asyncHandler(async (req: Request, res: Response) => {
+    const query = (req.validated?.query ?? req.query) as ListContractsQuery;
+    const result = await contractService.listContracts(query);
+    return sendSuccess(res, 200, result.data, {
+      total: result.total,
+      page: result.page,
+      pageSize: result.pageSize,
+      totalPages: result.totalPages,
+    });
+  });
 
-  async get(req: Request, res: Response, next: NextFunction) {
-    try {
-      const contract = await contractService.getById(req.params.id);
-      return sendSuccess(res, 200, contract);
-    } catch (error) {
-      next(error);
-    }
-  }
+  get = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = (req.validated?.params ?? req.params) as { id: string };
+    const contract = await contractService.getById(id);
+    return sendSuccess(res, 200, contract);
+  });
 
-  async create(req: Request, res: Response, next: NextFunction) {
-    try {
-      // TODO(opportunity): Converter oportunidades ganhas em contratos automaticamente antes da criação manual.
-      const contract = await contractService.createContract(req.body);
-      return sendSuccess(res, 201, contract);
-    } catch (error) {
-      next(error);
-    }
-  }
+  create = asyncHandler(async (req: Request, res: Response) => {
+    // TODO(opportunity): Converter oportunidades ganhas em contratos automaticamente antes da criação manual.
+    const payload = (req.validated?.body ?? req.body) as CreateContractInput;
+    const contract = await contractService.createContract(payload);
+    return sendSuccess(res, 201, contract);
+  });
 
-  async update(req: Request, res: Response, next: NextFunction) {
-    try {
-      const contract = await contractService.updateContract(req.params.id, req.body);
-      return sendSuccess(res, 200, contract);
-    } catch (error) {
-      next(error);
-    }
-  }
+  update = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = (req.validated?.params ?? req.params) as { id: string };
+    const payload = (req.validated?.body ?? req.body) as UpdateContractInput;
+    const contract = await contractService.updateContract(id, payload);
+    return sendSuccess(res, 200, contract);
+  });
 
-  async remove(req: Request, res: Response, next: NextFunction) {
-    try {
-      await contractService.delete(req.params.id);
-      return sendSuccess(res, 200, { id: req.params.id });
-    } catch (error) {
-      next(error);
-    }
-  }
+  remove = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = (req.validated?.params ?? req.params) as { id: string };
+    await contractService.delete(id);
+    return sendSuccess(res, 200, { id });
+  });
 }
 
 export default new ContractController();
