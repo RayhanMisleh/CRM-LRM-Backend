@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express';
 
-const authRoutes = require('./authRoutes.js') as Router;
+import authRoutes from './authRoutes';
 import clientRoutes from './clientRoutes';
 import contactRoutes from './contactRoutes';
 import contractRoutes from './contractRoutes';

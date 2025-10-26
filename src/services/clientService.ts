@@ -1,7 +1,12 @@
 import BaseService from './baseService';
 import clientRepository from '../repositories/clientRepository';
-import { ConflictError, ValidationError } from '../utils/httpErrors';
+import { ConflictError } from '../lib/http';
 import { parseDateFilters, parsePagination, parseSort } from '../utils/queryParsers';
+import {
+  CreateClientInput,
+  ListClientsQuery,
+  UpdateClientInput,
+} from '../validators/client';
 
 class ClientService extends BaseService<typeof clientRepository, unknown> {
   private readonly sortableFields = new Set(['name', 'email', 'status', 'createdAt', 'updatedAt']);
@@ -10,14 +15,14 @@ class ClientService extends BaseService<typeof clientRepository, unknown> {
     super(clientRepository);
   }
 
-  async listClients(query: Record<string, unknown>) {
-    const pagination = parsePagination(query.page as string | undefined, query.pageSize as string | undefined);
-    const { sortBy, sortOrder } = parseSort(query.sortBy as string | undefined, query.sortOrder as string | undefined);
-    const { startDate, endDate } = parseDateFilters(query.startDate as string | undefined, query.endDate as string | undefined);
+  async listClients(query: ListClientsQuery) {
+    const pagination = parsePagination(query.page, query.pageSize);
+    const { sortBy, sortOrder } = parseSort(query.sortBy, query.sortOrder);
+    const { startDate, endDate } = parseDateFilters(query.startDate, query.endDate);
 
     const where: Record<string, unknown> = {};
 
-    const search = query.search as string | undefined;
+    const search = query.search;
     if (search) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
@@ -26,12 +31,12 @@ class ClientService extends BaseService<typeof clientRepository, unknown> {
       ];
     }
 
-    const status = query.status as string | undefined;
+    const status = query.status;
     if (status) {
       where.status = status;
     }
 
-    const companyId = query.companyId as string | undefined;
+    const companyId = query.companyId;
     if (companyId) {
       where.empresaId = companyId;
     }
@@ -50,11 +55,7 @@ class ClientService extends BaseService<typeof clientRepository, unknown> {
     return this.list({ pagination, where, orderBy });
   }
 
-  async createClient(data: Record<string, unknown>) {
-    if (!data.name) {
-      throw new ValidationError('Nome é obrigatório');
-    }
-
+  async createClient(data: CreateClientInput) {
     if (data.email) {
       const existing = await clientRepository.list({ where: { email: data.email } });
       if (existing.length > 0) {
@@ -65,7 +66,7 @@ class ClientService extends BaseService<typeof clientRepository, unknown> {
     return this.repository.create(data);
   }
 
-  async updateClient(id: string, data: Record<string, unknown>) {
+  async updateClient(id: string, data: UpdateClientInput) {
     if (data.email) {
       const existing = await clientRepository.list({ where: { email: data.email, id: { not: id } } });
       if (existing.length > 0) {

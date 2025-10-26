@@ -1,5 +1,5 @@
 import BaseRepository, { ListParams } from '../repositories/baseRepository';
-import { NotFoundError, ValidationError } from '../utils/httpErrors';
+import { NotFoundError, ValidationError } from '../lib/http';
 import { PaginationParams } from '../utils/queryParsers';
 
 export interface ListOptions {

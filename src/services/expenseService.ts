@@ -1,7 +1,11 @@
 import BaseService from './baseService';
 import expenseRepository from '../repositories/expenseRepository';
-import { ValidationError } from '../utils/httpErrors';
 import { parseDateFilters, parsePagination, parseSort } from '../utils/queryParsers';
+import {
+  CreateExpenseInput,
+  ListExpensesQuery,
+  UpdateExpenseInput,
+} from '../validators/expense';
 
 class ExpenseService extends BaseService<typeof expenseRepository, unknown> {
   private readonly sortableFields = new Set(['title', 'amount', 'incurredAt', 'createdAt', 'updatedAt']);
@@ -10,14 +14,14 @@ class ExpenseService extends BaseService<typeof expenseRepository, unknown> {
     super(expenseRepository);
   }
 
-  async listExpenses(query: Record<string, unknown>) {
-    const pagination = parsePagination(query.page as string | undefined, query.pageSize as string | undefined);
-    const { sortBy, sortOrder } = parseSort(query.sortBy as string | undefined, query.sortOrder as string | undefined);
-    const { startDate, endDate } = parseDateFilters(query.startDate as string | undefined, query.endDate as string | undefined);
+  async listExpenses(query: ListExpensesQuery) {
+    const pagination = parsePagination(query.page, query.pageSize);
+    const { sortBy, sortOrder } = parseSort(query.sortBy, query.sortOrder);
+    const { startDate, endDate } = parseDateFilters(query.startDate, query.endDate);
 
     const where: Record<string, unknown> = {};
 
-    const search = query.search as string | undefined;
+    const search = query.search;
     if (search) {
       where.OR = [
         { title: { contains: search, mode: 'insensitive' } },
@@ -25,7 +29,7 @@ class ExpenseService extends BaseService<typeof expenseRepository, unknown> {
       ];
     }
 
-    const kind = query.kind as string | undefined;
+    const kind = query.kind;
     if (kind) {
       where.kind = kind;
     }
@@ -44,19 +48,11 @@ class ExpenseService extends BaseService<typeof expenseRepository, unknown> {
     return this.list({ pagination, where, orderBy });
   }
 
-  async createExpense(data: Record<string, unknown>) {
-    if (!data.title) {
-      throw new ValidationError('Título é obrigatório');
-    }
-
-    if (data.amount === undefined || data.amount === null || (typeof data.amount !== 'number' && typeof data.amount !== 'string')) {
-      throw new ValidationError('Valor é obrigatório');
-    }
-
+  async createExpense(data: CreateExpenseInput) {
     return this.repository.create(data);
   }
 
-  async updateExpense(id: string, data: Record<string, unknown>) {
+  async updateExpense(id: string, data: UpdateExpenseInput) {
     return this.repository.update(id, data);
   }
 }

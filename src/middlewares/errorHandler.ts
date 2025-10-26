@@ -1,11 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
-import { handleUnknownError } from '../utils/httpErrors';
-import { sendError } from '../utils/response';
 
-const errorHandler = (error: unknown, req: Request, res: Response, _next: NextFunction) => {
-  const normalizedError = handleUnknownError(error);
+import { sendError, toHttpError } from '../lib/http';
 
-  return sendError(res, normalizedError.statusCode, normalizedError.message, normalizedError.details);
+const errorHandler = (error: unknown, _req: Request, res: Response, _next: NextFunction) => {
+  const normalizedError = toHttpError(error);
+
+  return sendError(res, normalizedError);
 };
 
 export default errorHandler;
