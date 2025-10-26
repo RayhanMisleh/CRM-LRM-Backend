@@ -1,8 +1,8 @@
 import BaseRepository from './baseRepository';
 
-class SubscriptionRepository extends BaseRepository<'assinatura'> {
+class SubscriptionRepository extends BaseRepository<'subscription'> {
   constructor() {
-    super('assinatura');
+    super('subscription');
   }
 }
 

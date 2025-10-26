@@ -1,8 +1,8 @@
 import BaseRepository from './baseRepository';
 
-class InvoiceRepository extends BaseRepository<'fatura'> {
+class InvoiceRepository extends BaseRepository<'invoice'> {
   constructor() {
-    super('fatura');
+    super('invoice');
   }
 }
 

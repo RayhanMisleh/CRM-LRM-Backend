@@ -1,8 +1,8 @@
 import BaseRepository from './baseRepository';
 
-class RecurringExpenseRepository extends BaseRepository<'despesaRecorrente'> {
+class RecurringExpenseRepository extends BaseRepository<'recurringExpense'> {
   constructor() {
-    super('despesaRecorrente');
+    super('recurringExpense');
   }
 }
 
