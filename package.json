@@ -14,7 +14,8 @@
     "prisma:deploy": "prisma migrate deploy",
     "prestart": "npm run build",
     "lint": "cross-env ESLINT_USE_FLAT_CONFIG=false eslint \"{src,prisma}/**/*.{ts,js}\"",
-    "lint:fix": "npm run lint -- --fix"
+    "lint:fix": "npm run lint -- --fix",
+    "postbuild": "node scripts/copy-api-artifact.js"
   },
   "keywords": [
     "crm",
