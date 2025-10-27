@@ -32,6 +32,12 @@ Build the project:
 npm run build
 ```
 
+Seed the database with the demo client data (after configuring the environment and running migrations):
+
+```bash
+npm run seed
+```
+
 Run Prisma migrations:
 
 ```bash
