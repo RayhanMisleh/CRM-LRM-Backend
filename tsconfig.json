@@ -14,7 +14,9 @@
       "node",
       "express",
       "cors",
-      "cookie-parser"
+      "cookie-parser",
+      "swagger-ui-express",
+      "swagger-jsdoc"
     ]
   },
   "include": [

@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 
 import routes from './routes';
+import docsRoutes from './routes/docs';
 import errorHandler from './middlewares/errorHandler';
 import { env } from './lib/env';
 
@@ -51,6 +52,7 @@ app.get('/health', (req: Request, res: Response) => {
   });
 });
 
+app.use('/api', docsRoutes);
 app.use('/api', routes);
 
 app.use('*', (req: Request, res: Response) => {
