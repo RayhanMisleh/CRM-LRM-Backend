@@ -9,9 +9,8 @@ const envSchema = z.object({
     .string({ required_error: 'DATABASE_URL is required' })
     .min(1, 'DATABASE_URL is required'),
   DIRECT_URL: z
-    .string()
-    .min(1, 'DIRECT_URL cannot be empty')
-    .optional(),
+    .string({ required_error: 'DIRECT_URL is required' })
+    .min(1, 'DIRECT_URL is required'),
   PORT: z.coerce
     .number()
     .int()
