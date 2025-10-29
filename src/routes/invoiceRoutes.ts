@@ -17,12 +17,8 @@ router.post('/', validateRequest({ body: createInvoiceSchema }), invoiceControll
 router.put(
   '/:id',
   validateRequest({ params: idParamSchema, body: updateInvoiceSchema }),
-  invoiceController.update
+  invoiceController.update,
 );
-router.delete(
-  '/:id',
-  validateRequest({ params: idParamSchema }),
-  invoiceController.remove
-);
+router.delete('/:id', validateRequest({ params: idParamSchema }), invoiceController.remove);
 
 export default router;

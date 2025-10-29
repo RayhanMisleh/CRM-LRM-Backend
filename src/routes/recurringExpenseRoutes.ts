@@ -14,23 +14,23 @@ const router = Router();
 router.get(
   '/',
   validateRequest({ query: listRecurringExpensesQuerySchema }),
-  recurringExpenseController.list
+  recurringExpenseController.list,
 );
 router.get('/:id', validateRequest({ params: idParamSchema }), recurringExpenseController.get);
 router.post(
   '/',
   validateRequest({ body: createRecurringExpenseSchema }),
-  recurringExpenseController.create
+  recurringExpenseController.create,
 );
 router.put(
   '/:id',
   validateRequest({ params: idParamSchema, body: updateRecurringExpenseSchema }),
-  recurringExpenseController.update
+  recurringExpenseController.update,
 );
 router.delete(
   '/:id',
   validateRequest({ params: idParamSchema }),
-  recurringExpenseController.remove
+  recurringExpenseController.remove,
 );
 
 export default router;

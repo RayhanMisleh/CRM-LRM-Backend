@@ -19,7 +19,7 @@ export const listContractsQuerySchema = applyDateRangeValidation(
     sortBy: z.enum(contractSortableFields).optional(),
     status: z.nativeEnum(ContractStatus).optional(),
     clientId: z.string().uuid().optional(),
-  })
+  }),
 );
 
 const contractBaseSchema = z.object({
@@ -39,29 +39,28 @@ const contractBaseSchema = z.object({
 });
 
 export const createContractSchema = contractBaseSchema.refine(
-  (data) => {
+  data => {
     if (data.startDate && data.endDate) {
       return data.startDate <= data.endDate;
     }
     return true;
   },
-  { message: 'Data de término deve ser posterior à data de início', path: ['endDate'] }
+  { message: 'Data de término deve ser posterior à data de início', path: ['endDate'] },
 );
 
 export const updateContractSchema = contractBaseSchema
   .partial()
+  .refine(data => Object.keys(data).length > 0, {
+    message: 'Informe ao menos um campo para atualização',
+  })
   .refine(
-    (data) => Object.keys(data).length > 0,
-    { message: 'Informe ao menos um campo para atualização' }
-  )
-  .refine(
-    (data) => {
+    data => {
       if (data.startDate && data.endDate) {
         return data.startDate <= data.endDate;
       }
       return true;
     },
-    { message: 'Data de término deve ser posterior à data de início', path: ['endDate'] }
+    { message: 'Data de término deve ser posterior à data de início', path: ['endDate'] },
   );
 
 export type ListContractsQuery = z.infer<typeof listContractsQuerySchema>;

@@ -1,14 +1,16 @@
 import BaseService from './baseService';
 import expenseRepository from '../repositories/expenseRepository';
 import { parseDateFilters, parsePagination, parseSort } from '../utils/queryParsers';
-import {
-  CreateExpenseInput,
-  ListExpensesQuery,
-  UpdateExpenseInput,
-} from '../validators/expense';
+import { CreateExpenseInput, ListExpensesQuery, UpdateExpenseInput } from '../validators/expense';
 
 class ExpenseService extends BaseService<typeof expenseRepository, unknown> {
-  private readonly sortableFields = new Set(['title', 'amount', 'incurredAt', 'createdAt', 'updatedAt']);
+  private readonly sortableFields = new Set([
+    'title',
+    'amount',
+    'incurredAt',
+    'createdAt',
+    'updatedAt',
+  ]);
 
   constructor() {
     super(expenseRepository);
@@ -29,6 +31,22 @@ class ExpenseService extends BaseService<typeof expenseRepository, unknown> {
       ];
     }
 
+    if (query.clientId) {
+      where.clientId = query.clientId;
+    }
+
+    if (query.clientServiceId) {
+      where.clientServiceId = query.clientServiceId;
+    }
+
+    if (query.serviceBillingId) {
+      where.serviceBillingId = query.serviceBillingId;
+    }
+
+    if (query.invoiceId) {
+      where.invoiceId = query.invoiceId;
+    }
+
     const kind = query.kind;
     if (kind) {
       where.kind = kind;
@@ -41,9 +59,8 @@ class ExpenseService extends BaseService<typeof expenseRepository, unknown> {
       };
     }
 
-    const orderBy = sortBy && this.sortableFields.has(sortBy)
-      ? { [sortBy]: sortOrder }
-      : { incurredAt: 'desc' };
+    const orderBy =
+      sortBy && this.sortableFields.has(sortBy) ? { [sortBy]: sortOrder } : { incurredAt: 'desc' };
 
     return this.list({ pagination, where, orderBy });
   }

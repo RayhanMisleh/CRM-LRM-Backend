@@ -8,7 +8,7 @@ export const listMeetingsQuerySchema = applyDateRangeValidation(
   baseListQueryObject.extend({
     sortBy: z.enum(meetingSortableFields).optional(),
     clientId: z.string().uuid().optional(),
-  })
+  }),
 );
 
 const meetingBaseSchema = z.object({
@@ -27,7 +27,7 @@ export const createMeetingSchema = meetingBaseSchema;
 
 export const updateMeetingSchema = meetingBaseSchema
   .partial()
-  .refine((data) => Object.keys(data).length > 0, {
+  .refine(data => Object.keys(data).length > 0, {
     message: 'Informe ao menos um campo para atualização',
   });
 

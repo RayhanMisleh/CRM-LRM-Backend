@@ -102,7 +102,11 @@ export const sendError = (res: Response, error: HttpError) => {
   return res.status(error.statusCode).json(payload);
 };
 
-export type AsyncRouteHandler = (req: Request, res: Response, next: NextFunction) => Promise<unknown>;
+export type AsyncRouteHandler = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => Promise<unknown>;
 
 export const asyncHandler = (handler: AsyncRouteHandler) => {
   return (req: Request, res: Response, next: NextFunction) => {

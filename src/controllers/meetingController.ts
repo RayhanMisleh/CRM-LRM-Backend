@@ -2,11 +2,7 @@ import { Request, Response } from 'express';
 
 import meetingService from '../services/meetingService';
 import { asyncHandler, sendSuccess } from '../lib/http';
-import {
-  CreateMeetingInput,
-  ListMeetingsQuery,
-  UpdateMeetingInput,
-} from '../validators/meeting';
+import { CreateMeetingInput, ListMeetingsQuery, UpdateMeetingInput } from '../validators/meeting';
 
 class MeetingController {
   list = asyncHandler(async (req: Request, res: Response) => {

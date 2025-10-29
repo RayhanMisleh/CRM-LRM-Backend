@@ -4,8 +4,9 @@ import authRoutes from './authRoutes';
 import clientRoutes from './clientRoutes';
 import contactRoutes from './contactRoutes';
 import contractRoutes from './contractRoutes';
-import planRoutes from './planRoutes';
-import subscriptionRoutes from './subscriptionRoutes';
+import clientServiceRoutes from './clientServiceRoutes';
+import serviceTemplateRoutes from './serviceTemplateRoutes';
+import serviceBillingRoutes from './serviceBillingRoutes';
 import invoiceRoutes from './invoiceRoutes';
 import domainRoutes from './domainRoutes';
 import recurringExpenseRoutes from './recurringExpenseRoutes';
@@ -18,8 +19,9 @@ router.use('/auth', authRoutes);
 router.use('/clients', clientRoutes);
 router.use('/contacts', contactRoutes);
 router.use('/contracts', contractRoutes);
-router.use('/plans', planRoutes);
-router.use('/subscriptions', subscriptionRoutes);
+router.use('/service-templates', serviceTemplateRoutes);
+router.use('/client-services', clientServiceRoutes);
+router.use('/service-billings', serviceBillingRoutes);
 router.use('/invoices', invoiceRoutes);
 router.use('/domains', domainRoutes);
 router.use('/recurring-expenses', recurringExpenseRoutes);
@@ -36,8 +38,9 @@ router.get('/', (req: Request, res: Response) => {
       clients: '/api/clients',
       contacts: '/api/contacts',
       contracts: '/api/contracts',
-      plans: '/api/plans',
-      subscriptions: '/api/subscriptions',
+      serviceTemplates: '/api/service-templates',
+      clientServices: '/api/client-services',
+      serviceBillings: '/api/service-billings',
       invoices: '/api/invoices',
       domains: '/api/domains',
       recurringExpenses: '/api/recurring-expenses',

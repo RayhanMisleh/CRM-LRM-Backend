@@ -2,11 +2,7 @@ import { Request, Response } from 'express';
 
 import clientService from '../services/clientService';
 import { asyncHandler, sendSuccess } from '../lib/http';
-import {
-  CreateClientInput,
-  ListClientsQuery,
-  UpdateClientInput,
-} from '../validators/client';
+import { CreateClientInput, ListClientsQuery, UpdateClientInput } from '../validators/client';
 
 class ClientController {
   list = asyncHandler(async (req: Request, res: Response) => {

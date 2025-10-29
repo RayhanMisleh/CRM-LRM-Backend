@@ -1,11 +1,7 @@
 import BaseService from './baseService';
 import meetingRepository from '../repositories/meetingRepository';
 import { parseDateFilters, parsePagination, parseSort } from '../utils/queryParsers';
-import {
-  CreateMeetingInput,
-  ListMeetingsQuery,
-  UpdateMeetingInput,
-} from '../validators/meeting';
+import { CreateMeetingInput, ListMeetingsQuery, UpdateMeetingInput } from '../validators/meeting';
 
 class MeetingService extends BaseService<typeof meetingRepository, unknown> {
   private readonly sortableFields = new Set(['title', 'scheduledAt', 'createdAt', 'updatedAt']);
@@ -41,9 +37,8 @@ class MeetingService extends BaseService<typeof meetingRepository, unknown> {
       };
     }
 
-    const orderBy = sortBy && this.sortableFields.has(sortBy)
-      ? { [sortBy]: sortOrder }
-      : { scheduledAt: 'desc' };
+    const orderBy =
+      sortBy && this.sortableFields.has(sortBy) ? { [sortBy]: sortOrder } : { scheduledAt: 'desc' };
 
     return this.list({ pagination, where, orderBy });
   }

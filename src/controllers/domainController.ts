@@ -2,11 +2,7 @@ import { Request, Response } from 'express';
 
 import domainService from '../services/domainService';
 import { asyncHandler, sendSuccess } from '../lib/http';
-import {
-  CreateDomainInput,
-  ListDomainsQuery,
-  UpdateDomainInput,
-} from '../validators/domain';
+import { CreateDomainInput, ListDomainsQuery, UpdateDomainInput } from '../validators/domain';
 
 class DomainController {
   list = asyncHandler(async (req: Request, res: Response) => {

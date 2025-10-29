@@ -36,7 +36,7 @@ app.use(
     message: { error: 'Too many requests from this IP, please try again later.' },
     standardHeaders: true,
     legacyHeaders: false,
-  })
+  }),
 );
 
 app.use(express.json({ limit: '10mb' }));

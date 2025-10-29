@@ -6,6 +6,9 @@ import {
   InvoiceStatus,
   ExpenseKind,
   Frequency,
+  ServiceCategory,
+  ServiceStatus,
+  ServiceBillingStatus,
 } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -32,21 +35,29 @@ async function main() {
     },
   });
 
-  const demoPlan = await prisma.plan.upsert({
-    where: { externalId: 'demo-plan' },
+  const demoServiceTemplate = await prisma.serviceTemplate.upsert({
+    where: { externalId: 'demo-service-template' },
     update: {
-      name: 'Plano CRM Demo',
-      description: 'Plano utilizado para demonstrar as funcionalidades do CRM.',
-      price: '499.00',
-      billingCycle: Cycle.MONTHLY,
+      name: 'Aplicativo Mobile - Retainer',
+      category: ServiceCategory.APP,
+      description: 'Manutenção evolutiva e suporte para aplicativo mobile nativo.',
+      baseMonthlyFee: '499.00',
+      setupFee: '0.00',
+      defaultBillingCycle: Cycle.MONTHLY,
+      deliverables: 'Suporte, atualizações de segurança, publicação nas lojas.',
+      stack: 'React Native, Node.js',
       tags: ['demo'],
     },
     create: {
-      externalId: 'demo-plan',
-      name: 'Plano CRM Demo',
-      description: 'Plano utilizado para demonstrar as funcionalidades do CRM.',
-      price: '499.00',
-      billingCycle: Cycle.MONTHLY,
+      externalId: 'demo-service-template',
+      name: 'Aplicativo Mobile - Retainer',
+      category: ServiceCategory.APP,
+      description: 'Manutenção evolutiva e suporte para aplicativo mobile nativo.',
+      baseMonthlyFee: '499.00',
+      setupFee: '0.00',
+      defaultBillingCycle: Cycle.MONTHLY,
+      deliverables: 'Suporte, atualizações de segurança, publicação nas lojas.',
+      stack: 'React Native, Node.js',
       tags: ['demo'],
     },
   });
@@ -82,25 +93,70 @@ async function main() {
     },
   });
 
-  const demoSubscription = await prisma.subscription.upsert({
-    where: { externalId: 'demo-subscription' },
+  const demoClientService = await prisma.clientService.upsert({
+    where: { externalId: 'demo-client-service' },
     update: {
       clientId: demoClient.id,
-      planId: demoPlan.id,
+      templateId: demoServiceTemplate.id,
       contractId: demoContract.id,
-      status: ContractStatus.ACTIVE,
-      cycle: Cycle.MONTHLY,
+      title: 'Aplicativo Mobile - Cliente Demo',
+      scope: 'Suporte integral ao aplicativo mobile, incluindo publicações e monitoramento.',
+      status: ServiceStatus.ACTIVE,
+      responsible: 'Time Mobile',
+      hostingProvider: 'AWS',
+      repositoryUrls: ['https://github.com/acme/demo-mobile-app'],
+      environmentLinks: { production: 'https://app.cliente-demo.com' },
+      defaultMonthlyFee: '499.00',
+      currency: 'BRL',
+      billingCycle: Cycle.MONTHLY,
+      supportLevel: 'SLA 24/7',
       startDate: new Date('2024-02-01T00:00:00Z'),
+      goLiveDate: new Date('2024-02-15T00:00:00Z'),
       tags: ['demo'],
     },
     create: {
-      externalId: 'demo-subscription',
+      externalId: 'demo-client-service',
       clientId: demoClient.id,
-      planId: demoPlan.id,
+      templateId: demoServiceTemplate.id,
       contractId: demoContract.id,
-      status: ContractStatus.ACTIVE,
+      title: 'Aplicativo Mobile - Cliente Demo',
+      scope: 'Suporte integral ao aplicativo mobile, incluindo publicações e monitoramento.',
+      status: ServiceStatus.ACTIVE,
+      responsible: 'Time Mobile',
+      hostingProvider: 'AWS',
+      repositoryUrls: ['https://github.com/acme/demo-mobile-app'],
+      environmentLinks: { production: 'https://app.cliente-demo.com' },
+      defaultMonthlyFee: '499.00',
+      currency: 'BRL',
+      billingCycle: Cycle.MONTHLY,
+      supportLevel: 'SLA 24/7',
+      startDate: new Date('2024-02-01T00:00:00Z'),
+      goLiveDate: new Date('2024-02-15T00:00:00Z'),
+      tags: ['demo'],
+    },
+  });
+
+  const demoServiceBilling = await prisma.serviceBilling.upsert({
+    where: { externalId: 'demo-service-billing' },
+    update: {
+      clientServiceId: demoClientService.id,
+      status: ServiceBillingStatus.ACTIVE,
       cycle: Cycle.MONTHLY,
       startDate: new Date('2024-02-01T00:00:00Z'),
+      monthlyAmount: '499.00',
+      currency: 'BRL',
+      notes: 'Cobrança recorrente principal',
+      tags: ['demo'],
+    },
+    create: {
+      externalId: 'demo-service-billing',
+      clientServiceId: demoClientService.id,
+      status: ServiceBillingStatus.ACTIVE,
+      cycle: Cycle.MONTHLY,
+      startDate: new Date('2024-02-01T00:00:00Z'),
+      monthlyAmount: '499.00',
+      currency: 'BRL',
+      notes: 'Cobrança recorrente principal',
       tags: ['demo'],
     },
   });
@@ -109,7 +165,8 @@ async function main() {
     where: { externalId: 'demo-invoice' },
     update: {
       clientId: demoClient.id,
-      subscriptionId: demoSubscription.id,
+      clientServiceId: demoClientService.id,
+      serviceBillingId: demoServiceBilling.id,
       number: 'INV-DEM-2024-02',
       amount: '499.00',
       currency: 'BRL',
@@ -122,7 +179,8 @@ async function main() {
     create: {
       externalId: 'demo-invoice',
       clientId: demoClient.id,
-      subscriptionId: demoSubscription.id,
+      clientServiceId: demoClientService.id,
+      serviceBillingId: demoServiceBilling.id,
       number: 'INV-DEM-2024-02',
       amount: '499.00',
       currency: 'BRL',
@@ -161,7 +219,8 @@ async function main() {
     where: { externalId: 'demo-recurring-expense' },
     update: {
       clientId: demoClient.id,
-      subscriptionId: demoSubscription.id,
+      clientServiceId: demoClientService.id,
+      serviceBillingId: demoServiceBilling.id,
       title: 'Manutenção mensal de infraestrutura',
       description: 'Custos recorrentes associados à infraestrutura do cliente demo.',
       amount: '150.00',
@@ -174,7 +233,8 @@ async function main() {
     create: {
       externalId: 'demo-recurring-expense',
       clientId: demoClient.id,
-      subscriptionId: demoSubscription.id,
+      clientServiceId: demoClientService.id,
+      serviceBillingId: demoServiceBilling.id,
       title: 'Manutenção mensal de infraestrutura',
       description: 'Custos recorrentes associados à infraestrutura do cliente demo.',
       amount: '150.00',
@@ -190,7 +250,8 @@ async function main() {
     where: { externalId: 'demo-expense' },
     update: {
       clientId: demoClient.id,
-      subscriptionId: demoSubscription.id,
+      clientServiceId: demoClientService.id,
+      serviceBillingId: demoServiceBilling.id,
       invoiceId: demoInvoice.id,
       recurringExpenseId: demoRecurringExpense.id,
       title: 'Horas de consultoria adicionais',
@@ -204,7 +265,8 @@ async function main() {
     create: {
       externalId: 'demo-expense',
       clientId: demoClient.id,
-      subscriptionId: demoSubscription.id,
+      clientServiceId: demoClientService.id,
+      serviceBillingId: demoServiceBilling.id,
       invoiceId: demoInvoice.id,
       recurringExpenseId: demoRecurringExpense.id,
       title: 'Horas de consultoria adicionais',
@@ -244,7 +306,7 @@ async function main() {
 }
 
 main()
-  .catch((error) => {
+  .catch(error => {
     console.error('Erro ao executar seed:', error);
     process.exit(1);
   })

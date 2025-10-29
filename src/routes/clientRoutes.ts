@@ -17,12 +17,8 @@ router.post('/', validateRequest({ body: createClientSchema }), clientController
 router.put(
   '/:id',
   validateRequest({ params: idParamSchema, body: updateClientSchema }),
-  clientController.update
+  clientController.update,
 );
-router.delete(
-  '/:id',
-  validateRequest({ params: idParamSchema }),
-  clientController.remove
-);
+router.delete('/:id', validateRequest({ params: idParamSchema }), clientController.remove);
 
 export default router;

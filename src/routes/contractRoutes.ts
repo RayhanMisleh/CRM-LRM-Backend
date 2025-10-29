@@ -17,12 +17,8 @@ router.post('/', validateRequest({ body: createContractSchema }), contractContro
 router.put(
   '/:id',
   validateRequest({ params: idParamSchema, body: updateContractSchema }),
-  contractController.update
+  contractController.update,
 );
-router.delete(
-  '/:id',
-  validateRequest({ params: idParamSchema }),
-  contractController.remove
-);
+router.delete('/:id', validateRequest({ params: idParamSchema }), contractController.remove);
 
 export default router;

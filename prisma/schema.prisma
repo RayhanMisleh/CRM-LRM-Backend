@@ -43,6 +43,32 @@ enum Cycle {
   YEARLY
 }
 
+enum ServiceCategory {
+  APP
+  SITE
+  SYSTEM
+  CONSULTING
+  SUPPORT
+  OTHER
+}
+
+enum ServiceStatus {
+  PROPOSED
+  IMPLEMENTATION
+  ACTIVE
+  PAUSED
+  CANCELLED
+  ARCHIVED
+}
+
+enum ServiceBillingStatus {
+  PENDING
+  ACTIVE
+  PAUSED
+  CANCELLED
+  TERMINATED
+}
+
 enum InvoiceStatus {
   DRAFT
   PENDING
@@ -131,7 +157,7 @@ model Client {
   empresa           Empresa?           @relation(fields: [empresaId], references: [id], onDelete: SetNull)
   contacts          Contact[]
   contracts         Contract[]
-  subscriptions     Subscription[]
+  clientServices    ClientService[]
   invoices          Invoice[]
   domains           Domain[]
   recurringExpenses RecurringExpense[]
@@ -182,8 +208,8 @@ model Contract {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
-  client        Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  subscriptions Subscription[]
+  client         Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientServices ClientService[]
 
   @@index([clientId])
   @@index([status])
@@ -192,78 +218,122 @@ model Contract {
   @@map("contracts")
 }
 
-model Plan {
-  id           String   @id @default(uuid())
-  externalId   String?  @unique
-  name         String
-  description  String?
-  price        Decimal? @db.Decimal(12, 2)
-  currency     String   @default("BRL")
-  billingCycle Cycle    @default(MONTHLY)
-  meta         Json?
-  tags         String[] @default([])
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+model ServiceTemplate {
+  id                String          @id @default(uuid())
+  externalId        String?         @unique
+  name              String
+  category          ServiceCategory @default(OTHER)
+  description       String?
+  baseMonthlyFee    Decimal?        @db.Decimal(12, 2)
+  setupFee          Decimal?        @db.Decimal(12, 2)
+  defaultBillingCycle Cycle         @default(MONTHLY)
+  deliverables      String?
+  stack             String?
+  meta              Json?
+  tags              String[]        @default([])
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 
-  subscriptions Subscription[]
+  clientServices ClientService[]
 
-  @@index([billingCycle])
-  @@map("plans")
+  @@index([category])
+  @@map("service_templates")
 }
 
-model Subscription {
-  id          String         @id @default(uuid())
-  clientId    String
-  planId      String
-  contractId  String?
-  externalId  String?        @unique
-  status      ContractStatus @default(PENDING)
-  cycle       Cycle          @default(MONTHLY)
-  startDate   DateTime       @default(now())
-  endDate     DateTime?
-  cancelledAt DateTime?
-  meta        Json?
-  tags        String[]       @default([])
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+model ClientService {
+  id               String         @id @default(uuid())
+  clientId         String
+  templateId       String?
+  contractId       String?
+  externalId       String?        @unique
+  title            String
+  scope            String?
+  status           ServiceStatus  @default(PROPOSED)
+  responsible      String?
+  hostingProvider  String?
+  repositoryUrls   String[]       @default([])
+  environmentLinks Json?
+  defaultMonthlyFee Decimal?      @db.Decimal(12, 2)
+  currency         String         @default("BRL")
+  billingCycle     Cycle          @default(MONTHLY)
+  supportLevel     String?
+  startDate        DateTime?
+  goLiveDate       DateTime?
+  endDate          DateTime?
+  meta             Json?
+  tags             String[]       @default([])
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
-  client            Client             @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  plan              Plan               @relation(fields: [planId], references: [id], onDelete: Restrict)
-  contract          Contract?          @relation(fields: [contractId], references: [id], onDelete: SetNull)
+  client            Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  template          ServiceTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  contract          Contract?        @relation(fields: [contractId], references: [id], onDelete: SetNull)
+  billings          ServiceBilling[]
   invoices          Invoice[]
-  expenses          Expense[]
   recurringExpenses RecurringExpense[]
+  expenses          Expense[]
 
   @@index([clientId])
-  @@index([planId])
   @@index([status])
-  @@index([startDate])
-  @@index([endDate])
-  @@map("subscriptions")
+  @@index([templateId])
+  @@index([contractId])
+  @@map("client_services")
+}
+
+model ServiceBilling {
+  id               String               @id @default(uuid())
+  clientServiceId  String
+  externalId       String?              @unique
+  status           ServiceBillingStatus @default(PENDING)
+  cycle            Cycle                @default(MONTHLY)
+  startDate        DateTime             @default(now())
+  endDate          DateTime?
+  cancelledAt      DateTime?
+  monthlyAmount    Decimal              @db.Decimal(12, 2)
+  currency         String               @default("BRL")
+  adjustmentIndex  Decimal?             @db.Decimal(6, 4)
+  notes            String?
+  meta             Json?
+  tags             String[]             @default([])
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  clientService     ClientService      @relation(fields: [clientServiceId], references: [id], onDelete: Cascade)
+  invoices          Invoice[]
+  recurringExpenses RecurringExpense[]
+  expenses          Expense[]
+
+  @@index([clientServiceId])
+  @@index([status])
+  @@map("service_billings")
 }
 
 model Invoice {
-  id             String        @id @default(uuid())
-  clientId       String
-  subscriptionId String?
-  externalId     String?       @unique
-  number         String?
-  amount         Decimal       @db.Decimal(12, 2)
-  currency       String        @default("BRL")
-  status         InvoiceStatus @default(PENDING)
-  issuedAt       DateTime      @default(now())
-  dueDate        DateTime
-  paidAt         DateTime?
-  meta           Json?
-  tags           String[]      @default([])
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  id               String        @id @default(uuid())
+  clientId         String
+  clientServiceId  String?
+  serviceBillingId String?
+  externalId       String?       @unique
+  number           String?
+  amount           Decimal       @db.Decimal(12, 2)
+  currency         String        @default("BRL")
+  status           InvoiceStatus @default(PENDING)
+  issuedAt         DateTime      @default(now())
+  dueDate          DateTime
+  paidAt           DateTime?
+  meta             Json?
+  tags             String[]      @default([])
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
-  client       Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
-  expenses     Expense[]
+  client         Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientService  ClientService? @relation(fields: [clientServiceId], references: [id], onDelete: SetNull)
+  serviceBilling ServiceBilling? @relation(fields: [serviceBillingId], references: [id], onDelete: SetNull)
+  expenses       Expense[]
 
   @@index([clientId])
+  @@index([clientServiceId])
+  @@index([serviceBillingId])
   @@index([status])
   @@index([dueDate])
   @@map("invoices")
@@ -292,29 +362,32 @@ model Domain {
 }
 
 model RecurringExpense {
-  id             String      @id @default(uuid())
-  clientId       String?
-  subscriptionId String?
-  externalId     String?     @unique
-  title          String
-  description    String?
-  amount         Decimal     @db.Decimal(12, 2)
-  currency       String      @default("BRL")
-  kind           ExpenseKind @default(OPERATING)
-  frequency      Frequency   @default(MONTHLY)
-  nextOccurrence DateTime?
-  lastOccurrence DateTime?
-  meta           Json?
-  tags           String[]    @default([])
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  id               String      @id @default(uuid())
+  clientId         String?
+  clientServiceId  String?
+  serviceBillingId String?
+  externalId       String?     @unique
+  title            String
+  description      String?
+  amount           Decimal     @db.Decimal(12, 2)
+  currency         String      @default("BRL")
+  kind             ExpenseKind @default(OPERATING)
+  frequency        Frequency   @default(MONTHLY)
+  nextOccurrence   DateTime?
+  lastOccurrence   DateTime?
+  meta             Json?
+  tags             String[]    @default([])
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
 
-  client       Client?       @relation(fields: [clientId], references: [id], onDelete: SetNull)
-  subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
-  expenses     Expense[]
+  client         Client?         @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  clientService  ClientService?  @relation(fields: [clientServiceId], references: [id], onDelete: SetNull)
+  serviceBilling ServiceBilling? @relation(fields: [serviceBillingId], references: [id], onDelete: SetNull)
+  expenses       Expense[]
 
   @@index([clientId])
-  @@index([subscriptionId])
+  @@index([clientServiceId])
+  @@index([serviceBillingId])
   @@index([frequency])
   @@index([nextOccurrence])
   @@map("recurring_expenses")
@@ -323,7 +396,8 @@ model RecurringExpense {
 model Expense {
   id                 String      @id @default(uuid())
   clientId           String?
-  subscriptionId     String?
+  clientServiceId    String?
+  serviceBillingId   String?
   invoiceId          String?
   recurringExpenseId String?
   externalId         String?     @unique
@@ -339,12 +413,14 @@ model Expense {
   updatedAt          DateTime    @updatedAt
 
   client           Client?           @relation(fields: [clientId], references: [id], onDelete: SetNull)
-  subscription     Subscription?     @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  clientService    ClientService?    @relation(fields: [clientServiceId], references: [id], onDelete: SetNull)
+  serviceBilling   ServiceBilling?   @relation(fields: [serviceBillingId], references: [id], onDelete: SetNull)
   invoice          Invoice?          @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
   recurringExpense RecurringExpense? @relation(fields: [recurringExpenseId], references: [id], onDelete: SetNull)
 
   @@index([clientId])
-  @@index([subscriptionId])
+  @@index([clientServiceId])
+  @@index([serviceBillingId])
   @@index([invoiceId])
   @@index([kind])
   @@index([incurredAt])

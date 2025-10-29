@@ -17,12 +17,8 @@ router.post('/', validateRequest({ body: createMeetingSchema }), meetingControll
 router.put(
   '/:id',
   validateRequest({ params: idParamSchema, body: updateMeetingSchema }),
-  meetingController.update
+  meetingController.update,
 );
-router.delete(
-  '/:id',
-  validateRequest({ params: idParamSchema }),
-  meetingController.remove
-);
+router.delete('/:id', validateRequest({ params: idParamSchema }), meetingController.remove);
 
 export default router;

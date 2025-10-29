@@ -18,13 +18,15 @@ export const listRecurringExpensesQuerySchema = applyDateRangeValidation(
     frequency: z.nativeEnum(Frequency).optional(),
     kind: z.nativeEnum(ExpenseKind).optional(),
     clientId: z.string().uuid().optional(),
-    subscriptionId: z.string().uuid().optional(),
-  })
+    clientServiceId: z.string().uuid().optional(),
+    serviceBillingId: z.string().uuid().optional(),
+  }),
 );
 
 const recurringExpenseBaseSchema = z.object({
   clientId: z.string().uuid().optional(),
-  subscriptionId: z.string().uuid().optional(),
+  clientServiceId: z.string().uuid().optional(),
+  serviceBillingId: z.string().uuid().optional(),
   externalId: z.string().trim().min(1).optional(),
   title: z.string({ required_error: 'Título é obrigatório' }).trim().min(1),
   description: z.string().trim().optional(),
@@ -42,7 +44,7 @@ export const createRecurringExpenseSchema = recurringExpenseBaseSchema;
 
 export const updateRecurringExpenseSchema = recurringExpenseBaseSchema
   .partial()
-  .refine((data) => Object.keys(data).length > 0, {
+  .refine(data => Object.keys(data).length > 0, {
     message: 'Informe ao menos um campo para atualização',
   });
 

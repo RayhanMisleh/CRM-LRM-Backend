@@ -2,11 +2,7 @@ import { Request, Response } from 'express';
 
 import contactService from '../services/contactService';
 import { asyncHandler, sendSuccess } from '../lib/http';
-import {
-  CreateContactInput,
-  ListContactsQuery,
-  UpdateContactInput,
-} from '../validators/contact';
+import { CreateContactInput, ListContactsQuery, UpdateContactInput } from '../validators/contact';
 
 class ContactController {
   list = asyncHandler(async (req: Request, res: Response) => {

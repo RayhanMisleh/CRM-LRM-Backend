@@ -17,14 +17,16 @@ export const listInvoicesQuerySchema = applyDateRangeValidation(
   baseListQueryObject.extend({
     sortBy: z.enum(invoiceSortableFields).optional(),
     status: z.nativeEnum(InvoiceStatus).optional(),
-    subscriptionId: z.string().uuid().optional(),
     clientId: z.string().uuid().optional(),
-  })
+    clientServiceId: z.string().uuid().optional(),
+    serviceBillingId: z.string().uuid().optional(),
+  }),
 );
 
 const invoiceBaseSchema = z.object({
   clientId: z.string({ required_error: 'Cliente é obrigatório' }).uuid(),
-  subscriptionId: z.string().uuid().optional(),
+  clientServiceId: z.string().uuid().optional(),
+  serviceBillingId: z.string().uuid().optional(),
   externalId: z.string().trim().min(1).optional(),
   number: z.string().trim().min(1).optional(),
   amount: decimalSchema,
@@ -41,7 +43,7 @@ export const createInvoiceSchema = invoiceBaseSchema;
 
 export const updateInvoiceSchema = invoiceBaseSchema
   .partial()
-  .refine((data) => Object.keys(data).length > 0, {
+  .refine(data => Object.keys(data).length > 0, {
     message: 'Informe ao menos um campo para atualização',
   });
 

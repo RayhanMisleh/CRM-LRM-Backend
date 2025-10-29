@@ -2,11 +2,7 @@ import BaseService from './baseService';
 import domainRepository from '../repositories/domainRepository';
 import { ConflictError } from '../lib/http';
 import { parseDateFilters, parsePagination, parseSort } from '../utils/queryParsers';
-import {
-  CreateDomainInput,
-  ListDomainsQuery,
-  UpdateDomainInput,
-} from '../validators/domain';
+import { CreateDomainInput, ListDomainsQuery, UpdateDomainInput } from '../validators/domain';
 
 class DomainService extends BaseService<typeof domainRepository, unknown> {
   private readonly sortableFields = new Set(['name', 'hostname', 'expiresAt', 'createdAt']);
@@ -42,9 +38,8 @@ class DomainService extends BaseService<typeof domainRepository, unknown> {
       };
     }
 
-    const orderBy = sortBy && this.sortableFields.has(sortBy)
-      ? { [sortBy]: sortOrder }
-      : { createdAt: 'desc' };
+    const orderBy =
+      sortBy && this.sortableFields.has(sortBy) ? { [sortBy]: sortOrder } : { createdAt: 'desc' };
 
     return this.list({ pagination, where, orderBy });
   }
@@ -60,7 +55,9 @@ class DomainService extends BaseService<typeof domainRepository, unknown> {
 
   async updateDomain(id: string, data: UpdateDomainInput) {
     if (data.hostname) {
-      const existing = await domainRepository.list({ where: { hostname: data.hostname, id: { not: id } } });
+      const existing = await domainRepository.list({
+        where: { hostname: data.hostname, id: { not: id } },
+      });
       if (existing.length > 0) {
         throw new ConflictError('Já existe um domínio com este hostname');
       }

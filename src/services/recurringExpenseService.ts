@@ -8,7 +8,14 @@ import {
 } from '../validators/recurringExpense';
 
 class RecurringExpenseService extends BaseService<typeof recurringExpenseRepository, unknown> {
-  private readonly sortableFields = new Set(['title', 'amount', 'frequency', 'nextOccurrence', 'createdAt', 'updatedAt']);
+  private readonly sortableFields = new Set([
+    'title',
+    'amount',
+    'frequency',
+    'nextOccurrence',
+    'createdAt',
+    'updatedAt',
+  ]);
 
   constructor() {
     super(recurringExpenseRepository);
@@ -24,6 +31,18 @@ class RecurringExpenseService extends BaseService<typeof recurringExpenseReposit
     const search = query.search;
     if (search) {
       where.title = { contains: search, mode: 'insensitive' };
+    }
+
+    if (query.clientId) {
+      where.clientId = query.clientId;
+    }
+
+    if (query.clientServiceId) {
+      where.clientServiceId = query.clientServiceId;
+    }
+
+    if (query.serviceBillingId) {
+      where.serviceBillingId = query.serviceBillingId;
     }
 
     const frequency = query.frequency;
@@ -43,9 +62,8 @@ class RecurringExpenseService extends BaseService<typeof recurringExpenseReposit
       };
     }
 
-    const orderBy = sortBy && this.sortableFields.has(sortBy)
-      ? { [sortBy]: sortOrder }
-      : { createdAt: 'desc' };
+    const orderBy =
+      sortBy && this.sortableFields.has(sortBy) ? { [sortBy]: sortOrder } : { createdAt: 'desc' };
 
     return this.list({ pagination, where, orderBy });
   }

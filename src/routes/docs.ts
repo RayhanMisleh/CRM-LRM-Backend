@@ -55,7 +55,7 @@ const basePaths: OpenAPIV3.PathsObject = {
       tags: ['Auth'],
       summary: 'Cria um novo usuário e sessão',
       requestBody: requestBodyWithDescription(
-        'Consulte src/validators/session.ts para o formato completo (nome, email, senha, etc).'
+        'Consulte src/validators/session.ts para o formato completo (nome, email, senha, etc).',
       ),
       responses: {
         '201': {
@@ -76,7 +76,7 @@ const basePaths: OpenAPIV3.PathsObject = {
       tags: ['Auth'],
       summary: 'Inicia uma sessão para um usuário existente',
       requestBody: requestBodyWithDescription(
-        'Consulte src/validators/session.ts para email e senha esperados.'
+        'Consulte src/validators/session.ts para email e senha esperados.',
       ),
       responses: {
         '200': {
@@ -150,25 +150,36 @@ const resources: Array<{
     },
   },
   {
-    tag: 'Plans',
-    basePath: '/plans',
+    tag: 'Service Templates',
+    basePath: '/service-templates',
     description: {
-      list: 'Lista planos',
-      create: 'Cria um plano',
-      get: 'Obtém um plano pelo ID',
-      update: 'Atualiza um plano existente',
-      remove: 'Remove um plano',
+      list: 'Lista serviços do catálogo',
+      create: 'Cria um serviço no catálogo',
+      get: 'Obtém um serviço do catálogo pelo ID',
+      update: 'Atualiza um serviço do catálogo',
+      remove: 'Remove um serviço do catálogo',
     },
   },
   {
-    tag: 'Subscriptions',
-    basePath: '/subscriptions',
+    tag: 'Client Services',
+    basePath: '/client-services',
     description: {
-      list: 'Lista assinaturas',
-      create: 'Cria uma assinatura',
-      get: 'Obtém uma assinatura pelo ID',
-      update: 'Atualiza uma assinatura existente',
-      remove: 'Remove uma assinatura',
+      list: 'Lista serviços contratados pelos clientes',
+      create: 'Cria um serviço para um cliente',
+      get: 'Obtém um serviço de cliente pelo ID',
+      update: 'Atualiza um serviço de cliente',
+      remove: 'Remove um serviço de cliente',
+    },
+  },
+  {
+    tag: 'Service Billings',
+    basePath: '/service-billings',
+    description: {
+      list: 'Lista cobranças recorrentes de serviços',
+      create: 'Cria uma cobrança recorrente para um serviço',
+      get: 'Obtém uma cobrança recorrente pelo ID',
+      update: 'Atualiza uma cobrança recorrente',
+      remove: 'Remove uma cobrança recorrente',
     },
   },
   {
@@ -250,7 +261,7 @@ const resourcePaths = resources.reduce<OpenAPIV3.PathsObject>((paths, resource) 
       summary: resource.description.create,
       security: securedAccess,
       requestBody: requestBodyWithDescription(
-        `Consulte os validadores em src/validators para os campos aceitos em ${resource.basePath}.`
+        `Consulte os validadores em src/validators para os campos aceitos em ${resource.basePath}.`,
       ),
       responses: {
         '201': { description: 'Recurso criado com sucesso' },
@@ -290,7 +301,7 @@ const resourcePaths = resources.reduce<OpenAPIV3.PathsObject>((paths, resource) 
         },
       ],
       requestBody: requestBodyWithDescription(
-        `Consulte os validadores em src/validators para os campos aceitos em ${resource.basePath}.`
+        `Consulte os validadores em src/validators para os campos aceitos em ${resource.basePath}.`,
       ),
       responses: {
         '200': { description: 'Recurso atualizado com sucesso' },
@@ -345,8 +356,9 @@ const swaggerDefinition: OpenAPIV3.Document = {
     { name: 'Clients', description: 'Clientes e seus dados principais' },
     { name: 'Contacts', description: 'Contatos associados aos clientes' },
     { name: 'Contracts', description: 'Contratos firmados com os clientes' },
-    { name: 'Plans', description: 'Planos e produtos comercializados' },
-    { name: 'Subscriptions', description: 'Assinaturas vinculadas aos clientes' },
+    { name: 'Service Templates', description: 'Catálogo de serviços oferecidos' },
+    { name: 'Client Services', description: 'Serviços contratados e gerenciados por cliente' },
+    { name: 'Service Billings', description: 'Cobranças recorrentes vinculadas aos serviços' },
     { name: 'Invoices', description: 'Faturas emitidas para os clientes' },
     { name: 'Domains', description: 'Domínios gerenciados pela plataforma' },
     { name: 'Recurring Expenses', description: 'Despesas recorrentes cadastradas no sistema' },
@@ -455,7 +467,7 @@ router.get(
   '/docs',
   swaggerUi.setup(swaggerSpec, {
     explorer: true,
-  })
+  }),
 );
 
 export default router;

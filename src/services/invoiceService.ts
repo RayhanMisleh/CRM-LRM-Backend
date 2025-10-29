@@ -2,11 +2,7 @@ import BaseService from './baseService';
 import invoiceRepository from '../repositories/invoiceRepository';
 import { ConflictError } from '../lib/http';
 import { parseDateFilters, parsePagination, parseSort } from '../utils/queryParsers';
-import {
-  CreateInvoiceInput,
-  ListInvoicesQuery,
-  UpdateInvoiceInput,
-} from '../validators/invoice';
+import { CreateInvoiceInput, ListInvoicesQuery, UpdateInvoiceInput } from '../validators/invoice';
 
 class InvoiceService extends BaseService<typeof invoiceRepository, unknown> {
   private readonly sortableFields = new Set([
@@ -35,16 +31,24 @@ class InvoiceService extends BaseService<typeof invoiceRepository, unknown> {
       where.status = status;
     }
 
-    const subscriptionId = query.subscriptionId;
-    if (subscriptionId) {
-      where.subscriptionId = subscriptionId;
+    if (query.clientId) {
+      where.clientId = query.clientId;
+    }
+
+    if (query.clientServiceId) {
+      where.clientServiceId = query.clientServiceId;
+    }
+
+    if (query.serviceBillingId) {
+      where.serviceBillingId = query.serviceBillingId;
     }
 
     const search = query.search;
     if (search) {
       where.OR = [
         { number: { contains: search, mode: 'insensitive' } },
-        { subscription: { client: { name: { contains: search, mode: 'insensitive' } } } },
+        { client: { name: { contains: search, mode: 'insensitive' } } },
+        { clientService: { title: { contains: search, mode: 'insensitive' } } },
       ];
     }
 
@@ -55,9 +59,8 @@ class InvoiceService extends BaseService<typeof invoiceRepository, unknown> {
       };
     }
 
-    const orderBy = sortBy && this.sortableFields.has(sortBy)
-      ? { [sortBy]: sortOrder }
-      : { issuedAt: 'desc' };
+    const orderBy =
+      sortBy && this.sortableFields.has(sortBy) ? { [sortBy]: sortOrder } : { issuedAt: 'desc' };
 
     return this.list({ pagination, where, orderBy });
   }
@@ -75,7 +78,9 @@ class InvoiceService extends BaseService<typeof invoiceRepository, unknown> {
 
   async updateInvoice(id: string, data: UpdateInvoiceInput) {
     if (data.number) {
-      const existing = await invoiceRepository.list({ where: { number: data.number, id: { not: id } } });
+      const existing = await invoiceRepository.list({
+        where: { number: data.number, id: { not: id } },
+      });
       if (existing.length > 0) {
         throw new ConflictError('Já existe uma fatura com este número');
       }

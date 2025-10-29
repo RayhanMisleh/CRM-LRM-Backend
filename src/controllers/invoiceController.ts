@@ -2,11 +2,7 @@ import { Request, Response } from 'express';
 
 import invoiceService from '../services/invoiceService';
 import { asyncHandler, sendSuccess } from '../lib/http';
-import {
-  CreateInvoiceInput,
-  ListInvoicesQuery,
-  UpdateInvoiceInput,
-} from '../validators/invoice';
+import { CreateInvoiceInput, ListInvoicesQuery, UpdateInvoiceInput } from '../validators/invoice';
 
 class InvoiceController {
   list = asyncHandler(async (req: Request, res: Response) => {

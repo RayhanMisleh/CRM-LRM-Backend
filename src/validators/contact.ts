@@ -2,19 +2,13 @@ import { z } from 'zod';
 
 import { applyDateRangeValidation, baseListQueryObject } from './common';
 
-const contactSortableFields = [
-  'name',
-  'email',
-  'phone',
-  'createdAt',
-  'updatedAt',
-] as const;
+const contactSortableFields = ['name', 'email', 'phone', 'createdAt', 'updatedAt'] as const;
 
 export const listContactsQuerySchema = applyDateRangeValidation(
   baseListQueryObject.extend({
     sortBy: z.enum(contactSortableFields).optional(),
     status: z.enum(['linked', 'unlinked']).optional(),
-  })
+  }),
 );
 
 const contactBaseSchema = z.object({
@@ -29,19 +23,18 @@ const contactBaseSchema = z.object({
 });
 
 export const createContactSchema = contactBaseSchema.refine(
-  (data) => Boolean(data.email || data.phone),
+  data => Boolean(data.email || data.phone),
   {
     message: 'Informe email ou telefone',
     path: ['email'],
-  }
+  },
 );
 
-export const updateContactSchema = contactBaseSchema.partial().refine(
-  (data) => Object.keys(data).length > 0,
-  {
+export const updateContactSchema = contactBaseSchema
+  .partial()
+  .refine(data => Object.keys(data).length > 0, {
     message: 'Informe ao menos um campo para atualização',
-  }
-);
+  });
 
 export type ListContactsQuery = z.infer<typeof listContactsQuerySchema>;
 export type CreateContactInput = z.infer<typeof createContactSchema>;

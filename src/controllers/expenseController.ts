@@ -2,11 +2,7 @@ import { Request, Response } from 'express';
 
 import expenseService from '../services/expenseService';
 import { asyncHandler, sendSuccess } from '../lib/http';
-import {
-  CreateExpenseInput,
-  ListExpensesQuery,
-  UpdateExpenseInput,
-} from '../validators/expense';
+import { CreateExpenseInput, ListExpensesQuery, UpdateExpenseInput } from '../validators/expense';
 
 class ExpenseController {
   list = asyncHandler(async (req: Request, res: Response) => {

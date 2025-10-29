@@ -2,11 +2,7 @@ import BaseService from './baseService';
 import clientRepository from '../repositories/clientRepository';
 import { ConflictError } from '../lib/http';
 import { parseDateFilters, parsePagination, parseSort } from '../utils/queryParsers';
-import {
-  CreateClientInput,
-  ListClientsQuery,
-  UpdateClientInput,
-} from '../validators/client';
+import { CreateClientInput, ListClientsQuery, UpdateClientInput } from '../validators/client';
 
 class ClientService extends BaseService<typeof clientRepository, unknown> {
   private readonly sortableFields = new Set(['name', 'email', 'status', 'createdAt', 'updatedAt']);
@@ -48,9 +44,8 @@ class ClientService extends BaseService<typeof clientRepository, unknown> {
       };
     }
 
-    const orderBy = sortBy && this.sortableFields.has(sortBy)
-      ? { [sortBy]: sortOrder }
-      : { createdAt: 'desc' };
+    const orderBy =
+      sortBy && this.sortableFields.has(sortBy) ? { [sortBy]: sortOrder } : { createdAt: 'desc' };
 
     return this.list({ pagination, where, orderBy });
   }
@@ -68,7 +63,9 @@ class ClientService extends BaseService<typeof clientRepository, unknown> {
 
   async updateClient(id: string, data: UpdateClientInput) {
     if (data.email) {
-      const existing = await clientRepository.list({ where: { email: data.email, id: { not: id } } });
+      const existing = await clientRepository.list({
+        where: { email: data.email, id: { not: id } },
+      });
       if (existing.length > 0) {
         throw new ConflictError('Já existe um cliente com este email');
       }

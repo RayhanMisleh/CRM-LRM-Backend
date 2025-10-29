@@ -17,12 +17,8 @@ router.post('/', validateRequest({ body: createContactSchema }), contactControll
 router.put(
   '/:id',
   validateRequest({ params: idParamSchema, body: updateContactSchema }),
-  contactController.update
+  contactController.update,
 );
-router.delete(
-  '/:id',
-  validateRequest({ params: idParamSchema }),
-  contactController.remove
-);
+router.delete('/:id', validateRequest({ params: idParamSchema }), contactController.remove);
 
 export default router;

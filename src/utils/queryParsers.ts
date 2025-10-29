@@ -22,7 +22,7 @@ const MAX_PAGE_SIZE = 100;
 
 export const parsePagination = (
   pageParam?: string | number,
-  pageSizeParam?: string | number
+  pageSizeParam?: string | number,
 ): PaginationParams => {
   const page = Math.max(Number(pageParam) || 1, 1);
   const parsedPageSize = Number(pageSizeParam) || DEFAULT_PAGE_SIZE;
@@ -47,7 +47,7 @@ export const parseSort = (sortBy?: string, sortOrder?: string): SortParams => {
 
 export const parseDateFilters = (
   startDate?: string | Date,
-  endDate?: string | Date
+  endDate?: string | Date,
 ): DateFilterParams => {
   const parsedStartDate = startDate
     ? startDate instanceof Date

@@ -17,12 +17,8 @@ router.post('/', validateRequest({ body: createDomainSchema }), domainController
 router.put(
   '/:id',
   validateRequest({ params: idParamSchema, body: updateDomainSchema }),
-  domainController.update
+  domainController.update,
 );
-router.delete(
-  '/:id',
-  validateRequest({ params: idParamSchema }),
-  domainController.remove
-);
+router.delete('/:id', validateRequest({ params: idParamSchema }), domainController.remove);
 
 export default router;

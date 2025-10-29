@@ -2,11 +2,7 @@ import BaseService from './baseService';
 import contactRepository from '../repositories/contactRepository';
 import { ConflictError } from '../lib/http';
 import { parseDateFilters, parsePagination, parseSort } from '../utils/queryParsers';
-import {
-  CreateContactInput,
-  ListContactsQuery,
-  UpdateContactInput,
-} from '../validators/contact';
+import { CreateContactInput, ListContactsQuery, UpdateContactInput } from '../validators/contact';
 
 class ContactService extends BaseService<typeof contactRepository, unknown> {
   private readonly sortableFields = new Set(['name', 'email', 'phone', 'createdAt', 'updatedAt']);
@@ -46,9 +42,8 @@ class ContactService extends BaseService<typeof contactRepository, unknown> {
       };
     }
 
-    const orderBy = sortBy && this.sortableFields.has(sortBy)
-      ? { [sortBy]: sortOrder }
-      : { createdAt: 'desc' };
+    const orderBy =
+      sortBy && this.sortableFields.has(sortBy) ? { [sortBy]: sortOrder } : { createdAt: 'desc' };
 
     return this.list({ pagination, where, orderBy });
   }
@@ -66,7 +61,9 @@ class ContactService extends BaseService<typeof contactRepository, unknown> {
 
   async updateContact(id: string, data: UpdateContactInput) {
     if (data.email) {
-      const existing = await contactRepository.list({ where: { email: data.email, id: { not: id } } });
+      const existing = await contactRepository.list({
+        where: { email: data.email, id: { not: id } },
+      });
       if (existing.length > 0) {
         throw new ConflictError('Já existe um contato com este email');
       }

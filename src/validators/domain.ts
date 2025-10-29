@@ -8,7 +8,7 @@ export const listDomainsQuerySchema = applyDateRangeValidation(
   baseListQueryObject.extend({
     sortBy: z.enum(domainSortableFields).optional(),
     clientId: z.string().uuid().optional(),
-  })
+  }),
 );
 
 const domainBaseSchema = z.object({
@@ -25,10 +25,11 @@ const domainBaseSchema = z.object({
 
 export const createDomainSchema = domainBaseSchema;
 
-export const updateDomainSchema = domainBaseSchema.partial().refine(
-  (data) => Object.keys(data).length > 0,
-  { message: 'Informe ao menos um campo para atualização' }
-);
+export const updateDomainSchema = domainBaseSchema
+  .partial()
+  .refine(data => Object.keys(data).length > 0, {
+    message: 'Informe ao menos um campo para atualização',
+  });
 
 export type ListDomainsQuery = z.infer<typeof listDomainsQuerySchema>;
 export type CreateDomainInput = z.infer<typeof createDomainSchema>;

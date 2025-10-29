@@ -11,14 +11,13 @@ const envSchema = z.object({
   DIRECT_URL: z
     .string({ required_error: 'DIRECT_URL is required' })
     .min(1, 'DIRECT_URL is required'),
-  PORT: z.coerce
+  PORT: z.coerce.number().int().min(0).max(65535).default(3001),
+  CORS_ORIGIN: z.string().optional(),
+  RATE_LIMIT_WINDOW_MS: z.coerce
     .number()
     .int()
-    .min(0)
-    .max(65535)
-    .default(3001),
-  CORS_ORIGIN: z.string().optional(),
-  RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(15 * 60 * 1000),
+    .positive()
+    .default(15 * 60 * 1000),
   RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().default(100),
   JWT_SECRET: z
     .string({ required_error: 'JWT_SECRET is required' })

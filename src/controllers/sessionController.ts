@@ -35,8 +35,7 @@ class SessionController {
   });
 
   logout = asyncHandler(async (req: Request, res: Response) => {
-    const token =
-      req.cookies.token ?? req.headers.authorization?.replace('Bearer ', '') ?? null;
+    const token = req.cookies.token ?? req.headers.authorization?.replace('Bearer ', '') ?? null;
 
     if (!token) {
       throw new ValidationError('Token não fornecido');

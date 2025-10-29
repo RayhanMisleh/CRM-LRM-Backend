@@ -9,12 +9,17 @@ export const listExpensesQuerySchema = applyDateRangeValidation(
   baseListQueryObject.extend({
     sortBy: z.enum(expenseSortableFields).optional(),
     kind: z.nativeEnum(ExpenseKind).optional(),
-  })
+    clientId: z.string().uuid().optional(),
+    clientServiceId: z.string().uuid().optional(),
+    serviceBillingId: z.string().uuid().optional(),
+    invoiceId: z.string().uuid().optional(),
+  }),
 );
 
 const expenseBaseSchema = z.object({
   clientId: z.string().uuid().optional(),
-  subscriptionId: z.string().uuid().optional(),
+  clientServiceId: z.string().uuid().optional(),
+  serviceBillingId: z.string().uuid().optional(),
   invoiceId: z.string().uuid().optional(),
   recurringExpenseId: z.string().uuid().optional(),
   externalId: z.string().trim().min(1).optional(),
@@ -32,7 +37,7 @@ export const createExpenseSchema = expenseBaseSchema;
 
 export const updateExpenseSchema = expenseBaseSchema
   .partial()
-  .refine((data) => Object.keys(data).length > 0, {
+  .refine(data => Object.keys(data).length > 0, {
     message: 'Informe ao menos um campo para atualização',
   });
 

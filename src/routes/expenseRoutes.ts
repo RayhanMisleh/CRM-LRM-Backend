@@ -17,12 +17,8 @@ router.post('/', validateRequest({ body: createExpenseSchema }), expenseControll
 router.put(
   '/:id',
   validateRequest({ params: idParamSchema, body: updateExpenseSchema }),
-  expenseController.update
+  expenseController.update,
 );
-router.delete(
-  '/:id',
-  validateRequest({ params: idParamSchema }),
-  expenseController.remove
-);
+router.delete('/:id', validateRequest({ params: idParamSchema }), expenseController.remove);
 
 export default router;

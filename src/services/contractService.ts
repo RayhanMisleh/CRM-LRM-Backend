@@ -56,9 +56,8 @@ class ContractService extends BaseService<typeof contractRepository, unknown> {
       };
     }
 
-    const orderBy = sortBy && this.sortableFields.has(sortBy)
-      ? { [sortBy]: sortOrder }
-      : { createdAt: 'desc' };
+    const orderBy =
+      sortBy && this.sortableFields.has(sortBy) ? { [sortBy]: sortOrder } : { createdAt: 'desc' };
 
     return this.list({ pagination, where, orderBy });
   }
@@ -76,7 +75,9 @@ class ContractService extends BaseService<typeof contractRepository, unknown> {
 
   async updateContract(id: string, data: UpdateContractInput) {
     if (data.reference) {
-      const existing = await contractRepository.list({ where: { reference: data.reference, id: { not: id } } });
+      const existing = await contractRepository.list({
+        where: { reference: data.reference, id: { not: id } },
+      });
       if (existing.length > 0) {
         throw new ConflictError('Já existe um contrato com este número');
       }
