@@ -11,8 +11,11 @@ const clientSortableFields = [
   'updatedAt',
 ] as const;
 
+const MAX_CLIENT_PAGE_SIZE = 200;
+
 export const listClientsQuerySchema = applyDateRangeValidation(
   baseListQueryObject.extend({
+    pageSize: z.coerce.number().int().min(1).max(MAX_CLIENT_PAGE_SIZE).default(20),
     sortBy: z.enum(clientSortableFields).optional(),
     status: z.nativeEnum(ClientStatus).optional(),
     companyId: z.string().uuid().optional(),
