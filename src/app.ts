@@ -11,6 +11,13 @@ import { env } from './lib/env';
 
 const app: Application = express();
 
+// When running behind a proxy (like Vercel), Express needs to trust
+// the proxy to correctly determine client IPs (req.ip) and the
+// X-Forwarded-* headers. express-rate-limit depends on this to
+// generate a key for identifying clients. Set to 1 to trust the
+// first proxy hop (Vercel). See: https://expressjs.com/en/guide/behind-proxies.html
+app.set('trust proxy', 1);
+
 const helmetOptions: HelmetOptions = {
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 };
