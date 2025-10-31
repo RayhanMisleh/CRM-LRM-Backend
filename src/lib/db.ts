@@ -53,5 +53,21 @@ const registerShutdownHooks = (client: PrismaClient) => {
 
 registerShutdownHooks(prisma);
 
+// Set a conservative statement_timeout for each new connection/session.
+// This helps prevent a single long-running query from blocking a
+// serverless invocation until the platform timeout. We call this
+// non-blocking so it runs on cold-start and on reused clients.
+try {
+  // Do not await: run in background and log any error.
+  prisma
+    .$executeRawUnsafe("SET statement_timeout = 5000")
+    .then(() => console.log('Prisma: statement_timeout set to 5000ms'))
+    .catch((err) => console.error('Prisma: failed to set statement_timeout', err));
+} catch (err) {
+  // Safety: if something unexpected happens when scheduling the command,
+  // log it but do not crash the process.
+  console.error('Prisma: error scheduling statement_timeout', err);
+}
+
 export { Prisma };
 export default prisma;
