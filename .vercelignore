@@ -1,0 +1,6 @@
+# Ignore TypeScript source API entry to avoid conflicting filename with produced JS
+api/index.ts
+
+# Ignore other build artifacts if needed
+node_modules/
+dist/
