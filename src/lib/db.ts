@@ -14,9 +14,12 @@ const globalForPrisma = globalThis as GlobalWithPrisma;
 
 const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
-if (env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma;
-}
+// Reuse PrismaClient across lambda invocations to avoid expensive
+// connection setup on every cold start. Previously the reuse was only
+// enabled when NODE_ENV !== 'production'. For serverless environments
+// (like Vercel) reusing the client reduces latency and helps avoid
+// connection overhead that can lead to timeouts.
+globalForPrisma.prisma = prisma;
 
 let shutdownHooksRegistered = false;
 
