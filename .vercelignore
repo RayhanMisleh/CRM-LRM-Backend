@@ -1,0 +1,23 @@
+# git
+.git
+.gitignore
+
+# node/npm artifacts
+node_modules
+npm-debug.log
+pnpm-lock.yaml
+yarn.lock
+
+# build outputs
+dist
+coverage
+
+# editors / tooling
+.vscode
+.idea
+*.swp
+
+# environment
+.env
+.env.local
+.env.test
