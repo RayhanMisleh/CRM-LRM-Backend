@@ -1,17 +1,18 @@
 {
   "version": 2,
+  "buildCommand": "npm run build",
   "builds": [
-    { "src": "server.js", "use": "@vercel/node" }
+    {
+      "src": "server.js",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["dist/**"],
+        "memory": 1024,
+        "maxDuration": 60
+      }
+    }
   ],
   "routes": [
     { "src": "/(.*)", "dest": "server.js" }
-  ],
-  "functions": {
-    "server.js": {
-      "includeFiles": "dist/**",
-      "memory": 1024,
-      "maxDuration": 60,
-      "runtime": "nodejs20.x"
-    }
-  }
+  ]
 }
