@@ -1,4 +1,5 @@
 import { Request, Response, Router } from 'express';
+import prisma from '../lib/db';
 
 import authRoutes from './authRoutes';
 import clientRoutes from './clientRoutes';
@@ -51,12 +52,11 @@ router.get('/', (req: Request, res: Response) => {
 });
 
 // Lightweight DB health check that runs a simple SELECT 1 via Prisma.
-// Import Prisma lazily inside the handler so that requiring the routes
-// module does not initialize the DB client during module load. This
-// allows a plain /health route to respond without touching the DB.
+// Use this from the Vercel deployment to validate connectivity from the
+// serverless function to Neon without exercising the full application
+// logic.
 router.get('/db-health', async (_req: Request, res: Response) => {
   try {
-    const { default: prisma } = await import('../lib/db');
     const result = await prisma.$queryRawUnsafe('SELECT 1 as result');
     return res.status(200).json({ ok: true, result });
   } catch (err: unknown) {
