@@ -39,8 +39,38 @@ const helmetOptions: HelmetOptions = {
 
 app.use(helmet(helmetOptions));
 
+// Support a comma-separated list in CORS_ORIGIN env var and
+// always include the production frontend domain used on Vercel.
+const DEFAULT_FRONTEND = 'https://crm-lrm-frontend.vercel.app';
+
+const parseOrigins = (input?: string): string[] => {
+  if (!input) return [];
+  return input
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+};
+
+const allowedOrigins = Array.from(
+  new Set([...(parseOrigins(env.CORS_ORIGIN) || []), 'http://localhost:3000', DEFAULT_FRONTEND]),
+);
+
 const corsOptions: CorsOptions = {
-  origin: env.CORS_ORIGIN ?? 'http://localhost:3000',
+  // Use a function so we can allow requests from the configured
+  // origins and also accept subdomains of the Vercel domain if needed.
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. curl, server-to-server)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+
+    // Allow subdomains of the Vercel frontend (optional). This will
+    // allow e.g. https://app.crm-lrm-frontend.vercel.app if ever used.
+    const allowVercelSubdomain = /^https:\/\/([\w-]+\.)?crm-lrm-frontend\.vercel\.app$/;
+    if (allowVercelSubdomain.test(origin)) return callback(null, true);
+
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
