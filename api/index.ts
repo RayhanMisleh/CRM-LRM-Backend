@@ -1,10 +1,7 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 import app from '../src/app';
 
-// Vercel chama essa função passando (req, res)
-// Um app Express é ele mesmo um request handler válido.
-// Então a gente simplesmente delega req/res pro Express.
+// Vercel chama essa função passando (req, res).
+// Um app Express já implementa a interface de request handler do Node.
+// Então devolvemos o próprio app para que atenda as requisições diretamente.
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
-  return app(req, res);
-}
+export default app;
