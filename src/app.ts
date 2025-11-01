@@ -4,8 +4,9 @@ import helmet, { HelmetOptions } from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 
-import routes from './routes';
-import docsRoutes from './routes/docs';
+// Defer importing routes that may initialize DB clients. We'll import
+// them lazily after the /health route so that the serverless function
+// can respond to simple health checks without touching the DB.
 import errorHandler from './middlewares/errorHandler';
 import { env } from './lib/env';
 
@@ -91,6 +92,13 @@ app.get('/health', (req: Request, res: Response) => {
   });
 });
 
+// Lazy-import routes after defining /health so module loading of route
+// handlers does not trigger DB connections during cold-starts for
+// simple health checks.
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const docsRoutes = require('./routes/docs').default;
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const routes = require('./routes').default;
 app.use('/api', docsRoutes);
 app.use('/api', routes);
 
