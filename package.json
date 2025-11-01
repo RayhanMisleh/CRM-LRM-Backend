@@ -4,19 +4,18 @@
   "description": "CRM LRM Backend with Node.js and Prisma",
   "main": "dist/index.js",
   "scripts": {
-    "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
+    "postbuild": "node scripts/copy-api-artifact.js",
+    "start": "node dist/index.js",
     "seed": "npm run build && tsx prisma/seed.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "prisma:deploy": "prisma migrate deploy",
-    "prestart": "npm run build",
     "test": "vitest run",
     "lint": "cross-env ESLINT_USE_FLAT_CONFIG=false eslint \"{src,prisma}/**/*.{ts,js}\"",
-    "lint:fix": "npm run lint -- --fix",
-    "postbuild": "node scripts/copy-api-artifact.js"
+    "lint:fix": "npm run lint -- --fix"
   },
   "keywords": [
     "crm",
@@ -45,6 +44,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@vercel/node": "^3.1.5",
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
