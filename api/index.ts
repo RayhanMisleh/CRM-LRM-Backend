@@ -1,8 +1,6 @@
-import serverless from 'serverless-http';
-
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import app from '../src/app';
 
-const handler = serverless(app);
-
-export { handler };
-export default handler;
+export default function handler(req: VercelRequest, res: VercelResponse) {
+	return app(req, res);
+}
