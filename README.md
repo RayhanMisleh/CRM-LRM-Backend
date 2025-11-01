@@ -65,6 +65,9 @@ Os endpoints de documentação (Swagger) estão disponíveis em:
 
 - `/api/docs` – interface visual.
 - `/api/docs.json` – JSON para client tooling.
+- `/docs` e `/docs.json` – aliases convenientes para o frontend (mesmos conteúdos).
+
+> Todos os endpoints funcionam tanto em `/api/...` quanto diretamente na raiz (`/clients`, `/auth/login`, etc.), garantindo compatibilidade com o frontend existente.
 
 Os arquivos estáticos complementares ficam em `Documentacao Backend/`.
 

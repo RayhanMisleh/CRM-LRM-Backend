@@ -93,6 +93,8 @@ app.get('/health', (req: Request, res: Response) => {
 
 app.use('/api', docsRoutes);
 app.use('/api', routes);
+app.use('/', docsRoutes);
+app.use('/', routes);
 
 app.use('*', (req: Request, res: Response) => {
   res.status(404).json({
