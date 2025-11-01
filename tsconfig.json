@@ -20,10 +20,8 @@
     ]
   },
   "include": [
-    "src/**/*.ts",
-    "api/**/*.ts",
-    "src/**/*.d.ts",
-    "*.ts"
+    "src",
+    "api"
   ],
   "exclude": [
     "node_modules",
