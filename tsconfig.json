@@ -15,6 +15,6 @@
     "sourceMap": true,
     "types": ["node"]
   },
-  "include": ["src/**/*", "app.ts", "index.ts", "routes.ts"],
+  "include": ["src/**/*", "app.ts", "index.ts", "routes.ts", "server.ts"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
 }

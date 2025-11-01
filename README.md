@@ -1,6 +1,6 @@
 # CRM LRM Backend
 
-Back-end em Node.js + TypeScript para suportar o CRM/Upalo. O projeto foi estruturado para rodar como um servidor Express tradicional, com build em TypeScript e integrações com Prisma.
+Back-end em Node.js + TypeScript para suportar o CRM da LRM. O projeto foi estruturado para rodar como um servidor Express tradicional, com build em TypeScript e integrações com Prisma.
 
 ## Requisitos
 
@@ -53,11 +53,11 @@ npm install
    - **Install Command**: `npm install`
    - **Build Command**: `npm run build`
    - **Output Directory**: `dist`
-2. Adicione um arquivo `vercel.json` (já incluso no repositório) garantindo que o handler `server.js` seja usado.
+2. Adicione um arquivo `vercel.json` (já incluso no repositório) garantindo que o handler `server.ts` seja usado.
 3. Configure as variáveis de ambiente em *Settings → Environment Variables*.
-4. Ao finalizar o build, a Vercel utilizará o arquivo `server.js` para servir o Express compilado.
+4. Ao finalizar o build, a Vercel utilizará o arquivo `server.ts` para servir o Express compilado.
 
-> Observação: o projeto exporta o próprio app Express e não usa *adapters* `serverless-http`. A Vercel instanciará o Express diretamente a partir de `server.js`, mantendo o comportamento de servidor tradicional.
+> Observação: o projeto exporta o próprio app Express e não usa *adapters* `serverless-http`. A Vercel instanciará o Express diretamente a partir de `server.ts`, mantendo o comportamento de servidor tradicional.
 
 ## Documentação da API
 
