@@ -36,12 +36,12 @@ class ClientServiceService extends BaseService<typeof clientServiceRepository, u
       where.clientId = query.clientId;
     }
 
-    if (query.templateId) {
-      where.templateId = query.templateId;
-    }
-
     if (query.contractId) {
       where.contractId = query.contractId;
+    }
+
+    if (query.category) {
+      where.category = query.category;
     }
 
     if (query.search) {
@@ -49,7 +49,6 @@ class ClientServiceService extends BaseService<typeof clientServiceRepository, u
         { title: { contains: query.search, mode: 'insensitive' } },
         { scope: { contains: query.search, mode: 'insensitive' } },
         { client: { name: { contains: query.search, mode: 'insensitive' } } },
-        { template: { name: { contains: query.search, mode: 'insensitive' } } },
       ];
     }
 

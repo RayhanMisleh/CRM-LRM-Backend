@@ -31,8 +31,6 @@ const serviceBillingBaseSchema = z.object({
   currency: z.string().trim().min(1).default('BRL'),
   adjustmentIndex: decimalSchema.optional(),
   notes: z.string().trim().optional(),
-  meta: z.record(z.any()).optional(),
-  tags: z.array(z.string().trim().min(1)).optional(),
 });
 
 const validatePeriod = (data: { startDate?: Date; endDate?: Date }) => {

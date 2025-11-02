@@ -35,33 +35,6 @@ async function main() {
     },
   });
 
-  const demoServiceTemplate = await prisma.serviceTemplate.upsert({
-    where: { externalId: 'demo-service-template' },
-    update: {
-      name: 'Aplicativo Mobile - Retainer',
-      category: ServiceCategory.APP,
-      description: 'Manutenção evolutiva e suporte para aplicativo mobile nativo.',
-      baseMonthlyFee: '499.00',
-      setupFee: '0.00',
-      defaultBillingCycle: Cycle.MONTHLY,
-      deliverables: 'Suporte, atualizações de segurança, publicação nas lojas.',
-      stack: 'React Native, Node.js',
-      tags: ['demo'],
-    },
-    create: {
-      externalId: 'demo-service-template',
-      name: 'Aplicativo Mobile - Retainer',
-      category: ServiceCategory.APP,
-      description: 'Manutenção evolutiva e suporte para aplicativo mobile nativo.',
-      baseMonthlyFee: '499.00',
-      setupFee: '0.00',
-      defaultBillingCycle: Cycle.MONTHLY,
-      deliverables: 'Suporte, atualizações de segurança, publicação nas lojas.',
-      stack: 'React Native, Node.js',
-      tags: ['demo'],
-    },
-  });
-
   const demoContract = await prisma.contract.upsert({
     where: { externalId: 'demo-contract' },
     update: {
@@ -97,42 +70,42 @@ async function main() {
     where: { externalId: 'demo-client-service' },
     update: {
       clientId: demoClient.id,
-      templateId: demoServiceTemplate.id,
       contractId: demoContract.id,
       title: 'Aplicativo Mobile - Cliente Demo',
+      category: ServiceCategory.APPS,
       scope: 'Suporte integral ao aplicativo mobile, incluindo publicações e monitoramento.',
       status: ServiceStatus.ACTIVE,
       responsible: 'Time Mobile',
       hostingProvider: 'AWS',
       repositoryUrls: ['https://github.com/acme/demo-mobile-app'],
       environmentLinks: { production: 'https://app.cliente-demo.com' },
-      defaultMonthlyFee: '499.00',
+      monthlyFee: '499.00',
+      developmentFee: '0.00',
       currency: 'BRL',
       billingCycle: Cycle.MONTHLY,
       supportLevel: 'SLA 24/7',
       startDate: new Date('2024-02-01T00:00:00Z'),
       goLiveDate: new Date('2024-02-15T00:00:00Z'),
-      tags: ['demo'],
     },
     create: {
       externalId: 'demo-client-service',
       clientId: demoClient.id,
-      templateId: demoServiceTemplate.id,
       contractId: demoContract.id,
       title: 'Aplicativo Mobile - Cliente Demo',
+      category: ServiceCategory.APPS,
       scope: 'Suporte integral ao aplicativo mobile, incluindo publicações e monitoramento.',
       status: ServiceStatus.ACTIVE,
       responsible: 'Time Mobile',
       hostingProvider: 'AWS',
       repositoryUrls: ['https://github.com/acme/demo-mobile-app'],
       environmentLinks: { production: 'https://app.cliente-demo.com' },
-      defaultMonthlyFee: '499.00',
+      monthlyFee: '499.00',
+      developmentFee: '0.00',
       currency: 'BRL',
       billingCycle: Cycle.MONTHLY,
       supportLevel: 'SLA 24/7',
       startDate: new Date('2024-02-01T00:00:00Z'),
       goLiveDate: new Date('2024-02-15T00:00:00Z'),
-      tags: ['demo'],
     },
   });
 
@@ -146,7 +119,6 @@ async function main() {
       monthlyAmount: '499.00',
       currency: 'BRL',
       notes: 'Cobrança recorrente principal',
-      tags: ['demo'],
     },
     create: {
       externalId: 'demo-service-billing',
@@ -157,7 +129,6 @@ async function main() {
       monthlyAmount: '499.00',
       currency: 'BRL',
       notes: 'Cobrança recorrente principal',
-      tags: ['demo'],
     },
   });
 

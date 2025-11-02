@@ -150,24 +150,13 @@ const resources: Array<{
     },
   },
   {
-    tag: 'Service Templates',
-    basePath: '/service-templates',
-    description: {
-      list: 'Lista serviços do catálogo',
-      create: 'Cria um serviço no catálogo',
-      get: 'Obtém um serviço do catálogo pelo ID',
-      update: 'Atualiza um serviço do catálogo',
-      remove: 'Remove um serviço do catálogo',
-    },
-  },
-  {
     tag: 'Client Services',
     basePath: '/client-services',
     description: {
-      list: 'Lista serviços contratados pelos clientes',
-      create: 'Cria um serviço para um cliente',
-      get: 'Obtém um serviço de cliente pelo ID',
-      update: 'Atualiza um serviço de cliente',
+      list: 'Lista e filtra serviços configurados para cada cliente',
+      create: 'Registra um serviço customizado para um cliente',
+      get: 'Obtém os detalhes de um serviço de cliente pelo ID',
+      update: 'Atualiza os parâmetros de um serviço de cliente',
       remove: 'Remove um serviço de cliente',
     },
   },
@@ -356,8 +345,10 @@ const swaggerDefinition: OpenAPIV3.Document = {
     { name: 'Clients', description: 'Clientes e seus dados principais' },
     { name: 'Contacts', description: 'Contatos associados aos clientes' },
     { name: 'Contracts', description: 'Contratos firmados com os clientes' },
-    { name: 'Service Templates', description: 'Catálogo de serviços oferecidos' },
-    { name: 'Client Services', description: 'Serviços contratados e gerenciados por cliente' },
+    {
+      name: 'Client Services',
+      description: 'Serviços customizados atribuídos a cada cliente',
+    },
     { name: 'Service Billings', description: 'Cobranças recorrentes vinculadas aos serviços' },
     { name: 'Invoices', description: 'Faturas emitidas para os clientes' },
     { name: 'Domains', description: 'Domínios gerenciados pela plataforma' },
@@ -455,7 +446,7 @@ const swaggerOptions: SwaggerOptions = {
   ],
 };
 
-const swaggerSpec = swaggerJSDoc(swaggerOptions);
+export const swaggerSpec = swaggerJSDoc(swaggerOptions);
 
 router.get('/docs.json', (_req, res) => {
   res.setHeader('Content-Type', 'application/json');

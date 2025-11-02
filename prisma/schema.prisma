@@ -44,12 +44,11 @@ enum Cycle {
 }
 
 enum ServiceCategory {
-  APP
-  SITE
-  SYSTEM
-  CONSULTING
-  SUPPORT
-  OTHER
+  APPS
+  SITES
+  SOFTWARE
+  AUTOMATIONS
+  OTHERS
 }
 
 enum ServiceStatus {
@@ -218,55 +217,31 @@ model Contract {
   @@map("contracts")
 }
 
-model ServiceTemplate {
-  id                String          @id @default(uuid())
-  externalId        String?         @unique
-  name              String
-  category          ServiceCategory @default(OTHER)
-  description       String?
-  baseMonthlyFee    Decimal?        @db.Decimal(12, 2)
-  setupFee          Decimal?        @db.Decimal(12, 2)
-  defaultBillingCycle Cycle         @default(MONTHLY)
-  deliverables      String?
-  stack             String?
-  meta              Json?
-  tags              String[]        @default([])
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-
-  clientServices ClientService[]
-
-  @@index([category])
-  @@map("service_templates")
-}
-
 model ClientService {
   id               String         @id @default(uuid())
   clientId         String
-  templateId       String?
   contractId       String?
   externalId       String?        @unique
   title            String
+  category         ServiceCategory
   scope            String?
   status           ServiceStatus  @default(PROPOSED)
   responsible      String?
   hostingProvider  String?
   repositoryUrls   String[]       @default([])
   environmentLinks Json?
-  defaultMonthlyFee Decimal?      @db.Decimal(12, 2)
+  monthlyFee       Decimal?       @db.Decimal(12, 2)
+  developmentFee   Decimal?       @db.Decimal(12, 2)
   currency         String         @default("BRL")
   billingCycle     Cycle          @default(MONTHLY)
   supportLevel     String?
   startDate        DateTime?
   goLiveDate       DateTime?
   endDate          DateTime?
-  meta             Json?
-  tags             String[]       @default([])
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
   client            Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  template          ServiceTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
   contract          Contract?        @relation(fields: [contractId], references: [id], onDelete: SetNull)
   billings          ServiceBilling[]
   invoices          Invoice[]
@@ -275,7 +250,6 @@ model ClientService {
 
   @@index([clientId])
   @@index([status])
-  @@index([templateId])
   @@index([contractId])
   @@map("client_services")
 }
@@ -293,8 +267,6 @@ model ServiceBilling {
   currency         String               @default("BRL")
   adjustmentIndex  Decimal?             @db.Decimal(6, 4)
   notes            String?
-  meta             Json?
-  tags             String[]             @default([])
   createdAt        DateTime             @default(now())
   updatedAt        DateTime             @updatedAt
 

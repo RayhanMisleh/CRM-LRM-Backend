@@ -1,4 +1,4 @@
-import { Cycle, ServiceStatus } from '@prisma/client';
+import { Cycle, ServiceCategory, ServiceStatus } from '@prisma/client';
 import { z } from 'zod';
 
 import { applyDateRangeValidation, baseListQueryObject, decimalSchema } from './common';
@@ -17,32 +17,33 @@ export const listClientServicesQuerySchema = applyDateRangeValidation(
     sortBy: z.enum(clientServiceSortableFields).optional(),
     status: z.nativeEnum(ServiceStatus).optional(),
     clientId: z.string().uuid().optional(),
-    templateId: z.string().uuid().optional(),
+    category: z.nativeEnum(ServiceCategory).optional(),
     contractId: z.string().uuid().optional(),
   }),
 );
 
 const clientServiceBaseSchema = z.object({
   clientId: z.string({ required_error: 'Cliente é obrigatório' }).uuid(),
-  templateId: z.string().uuid().optional(),
   contractId: z.string().uuid().optional(),
   externalId: z.string().trim().min(1).optional(),
   title: z.string({ required_error: 'Título é obrigatório' }).trim().min(1),
+  category: z.nativeEnum(ServiceCategory, {
+    required_error: 'Categoria do serviço é obrigatória',
+  }),
   scope: z.string().trim().optional(),
   status: z.nativeEnum(ServiceStatus).optional(),
   responsible: z.string().trim().optional(),
   hostingProvider: z.string().trim().optional(),
   repositoryUrls: z.array(z.string().trim().min(1)).optional(),
   environmentLinks: z.record(z.any()).optional(),
-  defaultMonthlyFee: decimalSchema.optional(),
+  monthlyFee: decimalSchema.optional(),
+  developmentFee: decimalSchema.optional(),
   currency: z.string().trim().min(1).default('BRL'),
   billingCycle: z.nativeEnum(Cycle).optional(),
   supportLevel: z.string().trim().optional(),
   startDate: z.coerce.date().optional(),
   goLiveDate: z.coerce.date().optional(),
   endDate: z.coerce.date().optional(),
-  meta: z.record(z.any()).optional(),
-  tags: z.array(z.string().trim().min(1)).optional(),
 });
 
 const validateDates = (data: { startDate?: Date; goLiveDate?: Date; endDate?: Date }) => {

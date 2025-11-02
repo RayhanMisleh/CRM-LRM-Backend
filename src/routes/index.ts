@@ -6,7 +6,6 @@ import clientRoutes from './clientRoutes';
 import contactRoutes from './contactRoutes';
 import contractRoutes from './contractRoutes';
 import clientServiceRoutes from './clientServiceRoutes';
-import serviceTemplateRoutes from './serviceTemplateRoutes';
 import serviceBillingRoutes from './serviceBillingRoutes';
 import invoiceRoutes from './invoiceRoutes';
 import domainRoutes from './domainRoutes';
@@ -20,7 +19,6 @@ router.use('/auth', authRoutes);
 router.use('/clients', clientRoutes);
 router.use('/contacts', contactRoutes);
 router.use('/contracts', contractRoutes);
-router.use('/service-templates', serviceTemplateRoutes);
 router.use('/client-services', clientServiceRoutes);
 router.use('/service-billings', serviceBillingRoutes);
 router.use('/invoices', invoiceRoutes);
@@ -39,7 +37,6 @@ router.get('/', (req: Request, res: Response) => {
       clients: '/api/clients',
       contacts: '/api/contacts',
       contracts: '/api/contracts',
-      serviceTemplates: '/api/service-templates',
       clientServices: '/api/client-services',
       serviceBillings: '/api/service-billings',
       invoices: '/api/invoices',

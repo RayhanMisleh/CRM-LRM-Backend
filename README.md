@@ -47,6 +47,13 @@ npm install
 3. Rode `npm run dev` para iniciar o servidor (porta padrão 3001).
 4. Acesse `http://localhost:3001/health` para testar o status.
 
+## Modelagem de serviços
+
+- O catálogo de templates foi descontinuado. Agora todo serviço é criado diretamente em `/client-services` com informações personalizadas por cliente.
+- Cada serviço precisa indicar uma categoria entre `APPS`, `SITES`, `SOFTWARE`, `AUTOMATIONS` ou `OTHERS`, além de permitir configurar `monthlyFee`, `developmentFee`, ciclo de cobrança e demais campos específicos daquele cliente.
+- O endpoint `/service-templates` foi removido, assim como colunas auxiliares (`templateId`, `tags`, `meta`) antes presentes nas tabelas relacionadas a serviços.
+- Para aplicar as mudanças no banco, execute `npx prisma migrate dev` (ou `prisma migrate deploy` no ambiente produtivo) após atualizar as variáveis de ambiente.
+
 ## Deploy na Vercel
 
 1. No projeto da Vercel, defina:
