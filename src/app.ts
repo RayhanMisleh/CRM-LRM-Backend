@@ -26,7 +26,13 @@ app.set('trust proxy', true);
 // even if something later (DB, rate limiter) blocks or times out.
 app.use((req, _res, next) => {
   try {
-    console.log('[entry] %s %s x-forwarded-for=%s ip=%s', req.method, req.originalUrl, req.get('x-forwarded-for'), req.ip);
+    console.log(
+      '[entry] %s %s x-forwarded-for=%s ip=%s',
+      req.method,
+      req.originalUrl,
+      req.get('x-forwarded-for'),
+      req.ip,
+    );
   } catch (err) {
     console.log('[entry] unable to read request info', err);
   }
@@ -47,7 +53,7 @@ const parseOrigins = (input?: string): string[] => {
   if (!input) return [];
   return input
     .split(',')
-    .map((s) => s.trim())
+    .map(s => s.trim())
     .filter(Boolean);
 };
 
@@ -93,7 +99,7 @@ app.use(
     message: { error: 'Too many requests from this IP, please try again later.' },
     standardHeaders: true,
     legacyHeaders: false,
-    keyGenerator: (req) => {
+    keyGenerator: req => {
       const xfwd = (req.get('x-forwarded-for') as string) || '';
       if (xfwd) {
         // x-forwarded-for can be a comma-separated list
@@ -102,7 +108,7 @@ app.use(
       // prefer Express-populated req.ip when available
       if (req.ip) return String(req.ip);
       // fallback to common headers or socket info
-      const realIp = (req.get('x-real-ip') as string) || (req.socket && req.socket.remoteAddress) || 'unknown';
+      const realIp = (req.get('x-real-ip') as string) || req.socket?.remoteAddress || 'unknown';
       return String(realIp);
     },
   }),
